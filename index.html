@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courier City Replace Tool</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>⚡ Courier City Replace Tool</h1>
+        <span id="progressLabel">Delhi template loaded</span>
+    </header>
+
+    <div class="main">
+
+        <!-- LEFT: Input -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>📋 Input — Paste your HTML / WordPress code</span>
+                <button onclick="loadTemplate()">Load delhi-template.html</button>
+            </div>
+            <textarea id="inputArea" placeholder="Paste your code here, or click 'Load data.html'..."></textarea>
+        </div>
+
+        <!-- MIDDLE: Controls -->
+        <div class="controls">
+
+            <div class="section-title">Current Operation</div>
+
+            <div class="op-box">
+                <div class="op-row">
+                    <span class="op-label">Find</span>
+                    <span class="op-value find-val" id="opFind">Delhi</span>
+                </div>
+                <div class="op-arrow">↓ replace with</div>
+                <div class="op-row">
+                    <span class="op-label">Replace</span>
+                    <span class="op-value repl-val" id="opReplace">Mumbai</span>
+                </div>
+            </div>
+
+            <button class="btn-replace" id="replaceBtn" onclick="startFlow()">⚡ Replace Now</button>
+
+            <button class="btn-next" id="nextBtn" onclick="goNext()">
+                <span class="next-label">✅ Done! Click to process next →</span>
+                <span class="next-cities" id="nextBtnLabel">Mumbai → Jaipur</span>
+            </button>
+
+            <button class="btn-clear" onclick="clearAll()">🗑 Reset All</button>
+
+            <hr class="divider">
+            <div class="section-title">City Queue</div>
+            <div class="city-list" id="cityList"></div>
+
+            <hr class="divider">
+            <div class="section-title">Process Flow</div>
+
+            <div class="flow-box">
+                <div class="flow-step" id="s1"><span class="fi">🔍</span><span class="ft" id="s1t">Finding
+                        word...</span><span class="fb" id="s1b">—</span></div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step" id="s2"><span class="fi">✏️</span><span class="ft"
+                        id="s2t">Replacing...</span><span class="fb" id="s2b">—</span></div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step" id="s3"><span class="fi">🔗</span><span class="ft" id="s3t">Fixing
+                        slugs...</span><span class="fb" id="s3b">—</span></div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step" id="s4"><span class="fi">✅</span><span class="ft" id="s4t">Output
+                        ready!</span><span class="fb" id="s4b">—</span></div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: Output -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>✅ Output — Highlighted changes</span>
+                <button class="copy-btn" id="copyBtn" onclick="copyOutput()">Copy All</button>
+            </div>
+            <div class="output-wrap">
+                <div id="outputHighlight">Output will appear here with highlights...</div>
+                <textarea id="outputArea" readonly></textarea>
+                <div class="legend">
+                    <span class="legend-item"><span class="legend-dot" style="background:#4a1e6a;"></span><span
+                            style="color:#f5c2e7;">Found: <b id="cntFind">—</b></span></span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#1a3a6a;"></span><span
+                            style="color:#89b4fa;">Replaced: <b id="cntReplace">—</b></span></span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#1a4a2a;"></span><span
+                            style="color:#a6e3a1;">Slugs: <b id="cntSlug">—</b></span></span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PROCESS POPUP -->
+<div id="processPopup" class="process-overlay">
+    <div class="process-popup">
+        <h3>⚡ Processing...</h3>
+
+        <div class="pp-step" id="pp1">
+            <span class="pp-icon">🔍</span>
+            <span class="pp-text" id="pp1t">Finding word...</span>
+            <span class="pp-badge" id="pp1b">—</span>
+        </div>
+        <div class="pp-arrow">↓</div>
+        <div class="pp-step" id="pp2">
+            <span class="pp-icon">✏️</span>
+            <span class="pp-text" id="pp2t">Replacing...</span>
+            <span class="pp-badge" id="pp2b">—</span>
+        </div>
+        <div class="pp-arrow">↓</div>
+        <div class="pp-step" id="pp3">
+            <span class="pp-icon">🔗</span>
+            <span class="pp-text" id="pp3t">Fixing slugs...</span>
+            <span class="pp-badge" id="pp3b">—</span>
+        </div>
+        <div class="pp-arrow">↓</div>
+        <div class="pp-step" id="pp4">
+            <span class="pp-icon">✅</span>
+            <span class="pp-text" id="pp4t">Output ready!</span>
+            <span class="pp-badge" id="pp4b">—</span>
+        </div>
+    </div>
+</div>
+
+<!-- COMPLETION POPUP -->
+    <div id="completionPopup" class="popup-overlay">
+        <div class="popup-box">
+            <div class="popup-icon">🎉</div>
+            <div class="popup-title">Last Page Ho Gaya!</div>
+            <div class="popup-msg">
+                Aapne saari cities complete kar li hain.<br>
+                <strong style="color:#cdd6f4;">Delhi → India</strong> tak ka poora flow done hai.
+            </div>
+            <div class="popup-sub">Ab fir se Delhi se start karo?</div>
+            <button class="popup-btn-primary" onclick="restartFromDelhi()">🔄 Haan, Delhi se Start Karo</button>
+            <button class="popup-btn-secondary"
+                onclick="document.getElementById('completionPopup').style.display='none'">✖ Close</button>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>
