@@ -38,7 +38,7 @@ function updateOpBox() {
     document.getElementById('opFind').textContent    = CITIES[currentIndex]     || '—';
     document.getElementById('opReplace').textContent = CITIES[currentIndex + 1] || '—';
     document.getElementById('progressLabel').textContent =
-        `Step ${currentIndex + 1} of ${CITIES.length - 1}: ${CITIES[currentIndex]} → ${CITIES[currentIndex+1] || 'end'}`;
+        `Step ${currentIndex + 1} of ${CITIES.length - 1}: ${CITIES[currentIndex]} → ${CITIES[currentIndex+1] || 'end'} | Manish Web Developer`;
 }
 
 // ── LOAD TEMPLATE ──
