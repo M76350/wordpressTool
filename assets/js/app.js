@@ -109,11 +109,12 @@ async function startFlow() {
     ppReset();
     ppShow();
 
-    // STEP 1 — FIND
+    // STEP 1 — FIND (case-insensitive)
     ss('s1','active','...', `Finding "${findWord}"...`);
     pps('pp1','active','...', `Finding "${findWord}"...`);
     await delay(600);
-    const count = input.split(findWord).length - 1;
+    const findRegex = new RegExp(findWord.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+    const count = (input.match(findRegex) || []).length;
     if (count === 0) {
         ss('s1','err','0', `"${findWord}" not found!`);
         pps('pp1','err','0', `"${findWord}" not found!`);
@@ -125,12 +126,12 @@ async function startFlow() {
     ss('s1','done', count, `"${findWord}" found ${count}×`);
     pps('pp1','done', count, `"${findWord}" found ${count}×`);
 
-    // STEP 2 — REPLACE
+    // STEP 2 — REPLACE (case-insensitive, preserve replace word case)
     await delay(500);
     ss('s2','active','...', `"${findWord}" → "${replWord}"...`);
     pps('pp2','active','...', `"${findWord}" → "${replWord}"...`);
     await delay(700);
-    let result = input.split(findWord).join(replWord);
+    let result = input.replace(findRegex, replWord);
     ss('s2','done', count, `${count} replacements done`);
     pps('pp2','done', count, `${count} replacements done`);
 
@@ -208,7 +209,7 @@ function goNext() {
 function renderHighlighted(original, result, findWord, replWord, lowSlug) {
     let html = escHtml(result);
 
-    const foundCount = original.split(findWord).length - 1;
+    const foundCount = (original.match(new RegExp(findWord.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi')) || []).length;
     const slugCount  = html.split(escHtml(lowSlug)).length - 1;
     const replCount  = escHtml(result).split(escHtml(replWord)).length - 1;
 

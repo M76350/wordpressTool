@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Find & Replace | Manish Tools</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/manual.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <span class="navbar-brand">⚡ <span>Manish</span> Tools</span>
+    <a href="index.html" class="nav-link">🏙️ City Replace Tool</a>
+    <a href="manual-replace.html" class="nav-link active">🔍 Manual Find & Replace</a>
+</nav>
+
+<header>
+    <h1>🔍 Manual Find & Replace</h1>
+</header>
+
+<div class="toolbar">
+    <label>Find:</label>
+    <input type="text" id="findInput" placeholder="Type to find..." oninput="onFindInput()" />
+    <label>Replace:</label>
+    <input type="text" id="replaceInput" placeholder="Replace with..." />
+    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;background:#313244;padding:5px 10px;border-radius:5px;font-size:0.82em;color:#cdd6f4;">
+        <input type="checkbox" id="caseInsensitive" onchange="render()" checked style="width:auto;accent-color:#cba6f7;cursor:pointer;"> Case Insensitive
+    </label>
+    <button class="btn btn-find" onclick="findAll()">🔍 Find All</button>
+    <div class="nav-btns">
+        <button class="nav-btn" onclick="navMatch(-1)" title="Previous">▲</button>
+        <button class="nav-btn" onclick="navMatch(1)"  title="Next">▼</button>
+    </div>
+    <button class="btn btn-replace" onclick="replaceCurrent()">Replace</button>
+    <button class="btn btn-all"     onclick="replaceAll()">Replace All</button>
+    <button class="btn btn-clear"   onclick="clearAll()">Clear</button>
+    <div class="count-badge">Found: <span id="matchCount">0</span> &nbsp;|&nbsp; Replaced: <span id="replaceCount">0</span> &nbsp;|&nbsp; Slugs: <span id="slugCount">0</span></div>
+</div>
+
+<div class="main">
+
+    <div class="panel">
+        <div class="panel-header">
+            <span>📋 Input — Paste your code here</span>
+            <button onclick="document.getElementById('inputArea').value='';render();">Clear</button>
+        </div>
+        <textarea id="inputArea" placeholder="Paste your HTML / WordPress code here..." oninput="render()"></textarea>
+    </div>
+
+    <div class="output-wrap">
+        <div class="output-header">
+            <span>✅ Output — with highlights</span>
+            <button class="copy-btn" onclick="copyOutput()">Copy All</button>
+        </div>
+        <div id="outputHighlight">Output will appear here...</div>
+        <textarea id="outputArea" readonly></textarea>
+        <div class="legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#4a1e6a;"></span><span style="color:#f5c2e7;">Found match</span></span>
+            <span class="legend-item"><span class="legend-dot" style="background:#6a3e8a;border:2px solid #f9e2af;"></span><span style="color:#f9e2af;">Current match</span></span>
+            <span class="legend-item"><span class="legend-dot" style="background:#1a3a6a;"></span><span style="color:#89b4fa;">Replaced word</span></span>
+            <span class="legend-item"><span class="legend-dot" style="background:#1a4a2a;"></span><span style="color:#a6e3a1;">Slug fixed</span></span>
+        </div>
+    </div>
+
+</div>
+
+<script src="assets/js/manual.js"></script>
+</body>
+</html>
