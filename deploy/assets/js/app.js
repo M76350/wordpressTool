@@ -85,7 +85,7 @@ function updateOpBox() {
 // ── LOAD TEMPLATE ──
 async function loadTemplate() {
     try {
-        const r = await fetch('delhi-template.html');
+        const r = await fetch('data/delhi-template.html');
         const t = await r.text();
         document.getElementById('inputArea').value = t;
     } catch(e) {
