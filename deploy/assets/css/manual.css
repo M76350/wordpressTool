@@ -1,0 +1,38 @@
+/* Manual Find & Replace Page */
+header { background: #181825; padding: 10px 20px; border-bottom: 1px solid #313244; }
+header h1 { font-size: 1em; color: #cba6f7; }
+
+.toolbar { background: #181825; border-bottom: 1px solid #313244; padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar label { font-size: 0.75em; color: #6c7086; }
+.toolbar input { background: #1e1e2e; border: 1px solid #45475a; color: #cdd6f4; padding: 6px 10px; border-radius: 5px; font-size: 0.85em; outline: none; width: 180px; }
+.toolbar input:focus { border-color: #cba6f7; }
+#findInput    { border-color: #cba6f7 !important; }
+#replaceInput { border-color: #89b4fa !important; }
+
+.btn { border: none; padding: 7px 14px; border-radius: 5px; font-size: 0.82em; font-weight: bold; cursor: pointer; }
+.btn-find    { background: #cba6f7; color: #1e1e2e; }
+.btn-replace { background: #89b4fa; color: #1e1e2e; }
+.btn-all     { background: #a6e3a1; color: #1e1e2e; }
+.btn-clear   { background: #313244; color: #a6adc8; }
+.btn:hover   { opacity: 0.85; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.count-badge { font-size: 0.75em; background: #313244; color: #a6adc8; padding: 4px 10px; border-radius: 10px; }
+.count-badge span { color: #f9e2af; font-weight: bold; }
+
+.nav-btns { display: flex; gap: 4px; }
+.nav-btn { background: #313244; border: none; color: #cdd6f4; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+.nav-btn:hover { background: #45475a; }
+
+/* Output */
+.output-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.output-header { background: #181825; padding: 8px 14px; font-size: 0.78em; color: #a6adc8; border-bottom: 1px solid #313244; display: flex; justify-content: space-between; align-items: center; }
+
+#outputHighlight { flex: 1; overflow-y: auto; padding: 14px; font-family: 'Courier New', monospace; font-size: 0.82em; line-height: 1.6; white-space: pre-wrap; word-break: break-all; background: #1e1e2e; color: #cdd6f4; border-left: 1px solid #313244; }
+#outputArea { display: none; }
+
+/* Highlights */
+.hl-find     { background: #4a1e6a; color: #f5c2e7; border-radius: 2px; padding: 0 2px; outline: 2px solid transparent; }
+.hl-find.current { outline: 2px solid #f9e2af; background: #6a3e8a; }
+.hl-replaced      { background: #1a4a2a; color: #a6e3a1; border-radius: 2px; padding: 0 2px; }
+.hl-replace-word  { background: #1a3a6a; color: #89b4fa; border-radius: 2px; padding: 0 2px; }

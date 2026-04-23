@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Preview | Manish Tools</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        header { background: #181825; padding: 10px 20px; border-bottom: 1px solid #313244; }
+        header h1 { font-size: 1em; color: #cba6f7; }
+
+        .editor-wrap { display: flex; flex: 1; overflow: hidden; }
+
+        /* LEFT: Editor */
+        .editor-panel { display: flex; flex-direction: column; flex: 1; min-width: 0; border-right: 1px solid #313244; }
+        .editor-header { background: #181825; padding: 8px 14px; font-size: 0.78em; color: #a6adc8; border-bottom: 1px solid #313244; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .editor-header button { background: #313244; border: none; color: #cdd6f4; padding: 3px 9px; border-radius: 4px; cursor: pointer; font-size: 0.78em; }
+        .editor-header button:hover { background: #45475a; }
+
+        #codeEditor {
+            flex: 1;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border: none;
+            padding: 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            resize: none;
+            outline: none;
+            line-height: 1.7;
+            tab-size: 2;
+        }
+
+        /* RIGHT: Preview */
+        .preview-panel { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+        .preview-header { background: #181825; padding: 8px 14px; font-size: 0.78em; color: #a6adc8; border-bottom: 1px solid #313244; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+        #previewFrame {
+            flex: 1;
+            border: none;
+            background: #fff;
+        }
+
+        /* TOOLBAR */
+        .toolbar { background: #181825; border-bottom: 1px solid #313244; padding: 8px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn-run    { background: #a6e3a1; color: #1e1e2e; border: none; padding: 7px 16px; border-radius: 5px; font-size: 0.85em; font-weight: bold; cursor: pointer; }
+        .btn-run:hover { background: #94e2d5; }
+        .btn-load   { background: #f9e2af; color: #1e1e2e; border: none; padding: 7px 12px; border-radius: 5px; font-size: 0.82em; font-weight: bold; cursor: pointer; }
+        .btn-load:hover { background: #fab387; }
+        .btn-clear  { background: #313244; color: #a6adc8; border: none; padding: 7px 12px; border-radius: 5px; font-size: 0.82em; cursor: pointer; }
+        .btn-clear:hover { background: #45475a; }
+        .btn-copy   { background: #89b4fa; color: #1e1e2e; border: none; padding: 7px 12px; border-radius: 5px; font-size: 0.82em; font-weight: bold; cursor: pointer; }
+        .btn-copy:hover { background: #b4befe; }
+
+        .auto-label { display: flex; align-items: center; gap: 5px; font-size: 0.78em; color: #a6adc8; cursor: pointer; }
+        .auto-label input { accent-color: #a6e3a1; cursor: pointer; }
+
+        .line-count { font-size: 0.72em; color: #6c7086; margin-left: auto; }
+
+        /* RESIZE HANDLE */
+        .resize-handle {
+            width: 5px;
+            background: #313244;
+            cursor: col-resize;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .resize-handle:hover { background: #cba6f7; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <span class="navbar-brand">⚡ <span>Manish</span> Tools</span>
+    <a href="index.html" class="nav-link">🏙️ City Replace</a>
+    <a href="manual-replace.html" class="nav-link">🔍 Manual Replace</a>
+    <a href="html-preview.html" class="nav-link active">🖥️ HTML Preview</a>
+    <a href="text-editor.html" class="nav-link">📝 Text Editor</a>
+</nav>
+
+<header>
+    <h1>🖥️ HTML Editor & Live Preview</h1>
+</header>
+
+<div class="toolbar">
+    <button class="btn-run" onclick="runPreview()">▶ Run</button>
+    <button class="btn-load" onclick="loadCityLink()">📂 Load citylink.html</button>
+    <button class="btn-copy" onclick="copyCode()">Copy HTML</button>
+    <button class="btn-clear" onclick="clearEditor()">Clear</button>
+    <div style="display:flex;gap:4px;">
+        <button id="undoBtn" onclick="undo()" disabled style="background:#313244;border:none;color:#cdd6f4;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:0.82em;" title="Undo Ctrl+Z">↩ Undo</button>
+        <button id="redoBtn" onclick="redo()" disabled style="background:#313244;border:none;color:#cdd6f4;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:0.82em;" title="Redo Ctrl+Y">↪ Redo</button>
+    </div>
+    <label class="auto-label">
+        <input type="checkbox" id="autoRun" checked> Auto Preview
+    </label>
+
+    <div style="width:1px;background:#313244;height:20px;margin:0 4px;"></div>
+
+    <span style="font-size:0.75em;color:#6c7086;">Find & Replace:</span>
+    <input type="text" id="frFind" placeholder="Find..." style="background:#1e1e2e;border:1px solid #cba6f7;color:#cdd6f4;padding:5px 8px;border-radius:4px;font-size:0.82em;outline:none;width:120px;">
+    <input type="text" id="frReplace" placeholder="Replace..." style="background:#1e1e2e;border:1px solid #89b4fa;color:#cdd6f4;padding:5px 8px;border-radius:4px;font-size:0.82em;outline:none;width:120px;">
+    <button class="btn-run" onclick="doFindReplace()" style="background:#cba6f7;padding:5px 12px;">Replace All</button>
+    <span id="frCount" style="font-size:0.75em;color:#a6e3a1;"></span>
+
+    <span class="line-count" id="lineCount">Lines: 0</span>
+</div>
+
+<div class="editor-wrap">
+
+    <!-- LEFT: Code Editor -->
+    <div class="editor-panel" id="editorPanel">
+        <div class="editor-header">
+            <span>📝 HTML Editor</span>
+            <button onclick="formatCode()">Format</button>
+        </div>
+        <textarea id="codeEditor" placeholder="Paste or type your HTML here..." spellcheck="false" oninput="onEditorInput()"></textarea>
+    </div>
+
+    <!-- RESIZE HANDLE -->
+    <div class="resize-handle" id="resizeHandle"></div>
+
+    <!-- RIGHT: Preview -->
+    <div class="preview-panel" id="previewPanel">
+        <div class="preview-header">
+            <span>👁️ Live Preview</span>
+            <span id="previewStatus" style="color:#6c7086;font-size:0.75em;">Ready</span>
+        </div>
+        <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+
+</div>
+
+<script>
+    let autoTimer = null;
+
+    // ── UNDO / REDO ──
+    let history = [];
+    let histIdx  = -1;
+
+    function saveHistory() {
+        const val = document.getElementById('codeEditor').value;
+        history = history.slice(0, histIdx + 1);
+        history.push(val);
+        histIdx = history.length - 1;
+        updateUndoRedo();
+    }
+
+    function undo() {
+        if (histIdx <= 0) return;
+        histIdx--;
+        document.getElementById('codeEditor').value = history[histIdx];
+        updateLineCount();
+        runPreview();
+        updateUndoRedo();
+    }
+
+    function redo() {
+        if (histIdx >= history.length - 1) return;
+        histIdx++;
+        document.getElementById('codeEditor').value = history[histIdx];
+        updateLineCount();
+        runPreview();
+        updateUndoRedo();
+    }
+
+    function updateUndoRedo() {
+        document.getElementById('undoBtn').disabled = histIdx <= 0;
+        document.getElementById('redoBtn').disabled = histIdx >= history.length - 1;
+    }
+
+    // ── LOAD citylink.html ──
+    async function loadCityLink() {
+        try {
+            const r = await fetch('data/citylink.html');
+            const t = await r.text();
+            document.getElementById('codeEditor').value = t;
+            updateLineCount();
+            saveHistory();
+            runPreview();
+        } catch(e) {
+            alert('Could not load citylink.html');
+        }
+    }
+
+    // ── FIND & REPLACE IN EDITOR ──
+    function doFindReplace() {
+        const find = document.getElementById('frFind').value;
+        const repl = document.getElementById('frReplace').value;
+        if (!find) { alert('Enter a word to find!'); return; }
+
+        const ta   = document.getElementById('codeEditor');
+        const text = ta.value;
+        const count = text.split(find).length - 1;
+        if (count === 0) { alert(`"${find}" not found!`); return; }
+
+        ta.value = text.split(find).join(repl);
+        saveHistory();
+        document.getElementById('frCount').textContent = `✔ ${count} replaced`;
+        setTimeout(() => document.getElementById('frCount').textContent = '', 3000);
+        updateLineCount();
+        runPreview();
+    }
+
+    // ── RUN PREVIEW ──
+    function runPreview() {
+        const code = document.getElementById('codeEditor').value;
+        const frame = document.getElementById('previewFrame');
+        const status = document.getElementById('previewStatus');
+
+        frame.srcdoc = code;
+        status.textContent = '✅ Updated ' + new Date().toLocaleTimeString();
+        status.style.color = '#a6e3a1';
+        setTimeout(() => { status.style.color = '#6c7086'; }, 2000);
+    }
+
+    // ── AUTO PREVIEW ──
+    function onEditorInput() {
+        updateLineCount();
+        // Debounce history save
+        clearTimeout(autoTimer);
+        autoTimer = setTimeout(() => {
+            saveHistory();
+            if (document.getElementById('autoRun').checked) runPreview();
+        }, 600);
+    }
+
+    // ── LINE COUNT ──
+    function updateLineCount() {
+        const lines = document.getElementById('codeEditor').value.split('\n').length;
+        document.getElementById('lineCount').textContent = `Lines: ${lines}`;
+    }
+
+    // ── CLEAR ──
+    function clearEditor() {
+        if (!confirm('Clear the editor?')) return;
+        document.getElementById('codeEditor').value = '';
+        document.getElementById('previewFrame').srcdoc = '';
+        document.getElementById('previewStatus').textContent = 'Ready';
+        history = []; histIdx = -1;
+        updateLineCount();
+        updateUndoRedo();
+    }
+
+    // ── COPY ──
+    function copyCode() {
+        const val = document.getElementById('codeEditor').value;
+        if (!val.trim()) { alert('Nothing to copy!'); return; }
+        navigator.clipboard.writeText(val).then(() => {
+            const b = document.querySelector('.btn-copy');
+            b.textContent = '✔ Copied!';
+            setTimeout(() => b.textContent = 'Copy HTML', 2000);
+        });
+    }
+
+    // ── FORMAT (basic indent) ──
+    function formatCode() {
+        const ta = document.getElementById('codeEditor');
+        try {
+            // Simple: just normalize line endings and trim
+            let code = ta.value.replace(/\r\n/g, '\n').trim();
+            ta.value = code;
+            updateLineCount();
+        } catch(e) {}
+    }
+
+    // ── TAB KEY SUPPORT ──
+    document.getElementById('codeEditor').addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end   = this.selectionEnd;
+            this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 2;
+            onEditorInput();
+        }
+    });
+
+    // ── DRAG RESIZE ──
+    const handle = document.getElementById('resizeHandle');
+    const editorPanel = document.getElementById('editorPanel');
+    const previewPanel = document.getElementById('previewPanel');
+    let isResizing = false;
+
+    handle.addEventListener('mousedown', e => {
+        isResizing = true;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (!isResizing) return;
+        const wrap = document.querySelector('.editor-wrap');
+        const wrapRect = wrap.getBoundingClientRect();
+        const offset = e.clientX - wrapRect.left;
+        const total  = wrapRect.width;
+        const pct    = Math.min(Math.max(offset / total * 100, 20), 80);
+        editorPanel.style.flex  = 'none';
+        editorPanel.style.width = pct + '%';
+        previewPanel.style.flex = '1';
+    });
+
+    document.addEventListener('mouseup', () => {
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+    });
+
+    // ── INIT ──
+    updateLineCount();
+    updateUndoRedo();
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
+    });
+    // Auto-load citylink.html on open
+    loadCityLink();
+</script>
+
+</body>
+</html>
