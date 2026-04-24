@@ -1,21 +1,42 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Editor | Manish Tools</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Text Editor | ManishDevTools</title>
+    <meta name="description" content="ManishDevTools Text Editor – Free online text editor by Manish Web Developer. Edit, find & replace text with line numbers, word count, undo/redo and download support.">
+    <meta name="keywords" content="ManishDevTools, text editor online manish, manish web developer text editor, free text editor wordpress, manish tools text editor">
+    <meta name="author" content="Manish Web Developer">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://wordpress-tool.vercel.app/text-editor.html">
+        <link rel="icon" type="image/png" href="assets/images/ManishDevTool.png">
+    <link rel="apple-touch-icon" href="assets/images/ManishDevTool.png">
+    <meta property="og:image" content="https://wordpress-tool.vercel.app/assets/images/ManishDevTool.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:image" content="https://wordpress-tool.vercel.app/assets/images/ManishDevTool.png">    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/text-editor.css">
 </head>
 <body>
 
 <nav class="navbar">
-    <span class="navbar-brand">⚡ <span>Manish</span> Tools</span>
-    <a href="index.html" class="nav-link">🏙️ City Replace</a>
+    <a href="index.html" class="navbar-brand" style="text-decoration:none;">⚡ <span>Manish</span> Tools</a>
+    <div class="navbar-links"><a href="index.html" class="nav-link">🏙️ City Replace</a>
     <a href="manual-replace.html" class="nav-link">🔍 Manual Replace</a>
     <a href="html-preview.html" class="nav-link">🖥️ HTML Preview</a>
-    <a href="text-editor.html" class="nav-link active">📝 Text Editor</a>
+    <a href="text-editor.html" class="nav-link active">📝 Text Editor</a></div>
+<div class="nav-toggle" id="navToggle" onclick="toggleMobileNav()"><span></span><span></span><span></span></div>
 </nav>
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-inner">
+        <button class="mobile-nav-close" onclick="toggleMobileNav()"></button>
+        <a href="index.html" class="nav-link" onclick="toggleMobileNav()"> City Replace</a>
+        <a href="manual-replace.html" class="nav-link" onclick="toggleMobileNav()"> Manual Replace</a>
+        <a href="html-preview.html" class="nav-link" onclick="toggleMobileNav()"> HTML Preview</a>
+        <a href="text-editor.html" class="nav-link active" onclick="toggleMobileNav()"> Text Editor</a>
+    </div>
+</div>
 
 <header>
     <h1>📝 Text Editor</h1>
@@ -56,5 +77,31 @@
 </div>
 
 <script src="assets/js/text-editor.js"></script>
-</body>
+
+<footer class="site-footer">
+    <div>
+        <span class="footer-brand">? Manish Tools</span>
+        &nbsp;� Free WordPress City Replace Tool
+    </div>
+    <div class="footer-links">
+        <div class="navbar-links"><a href="index.html">City Replace</a>
+        <a href="manual-replace.html">Manual Replace</a>
+        <a href="html-preview.html">HTML Preview</a>
+        <a href="text-editor.html">Text Editor</a></div>
+    </div>
+    <div class="footer-right">Built by Manish Web Developer  2026</div>
+</footer>
+<script>
+function toggleMobileNav() {
+    const nav    = document.getElementById('mobileNav');
+    const toggle = document.getElementById('navToggle');
+    nav.classList.toggle('open');
+    toggle.classList.toggle('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('mobileNav').addEventListener('click', function(e) {
+        if (e.target === this) toggleMobileNav();
+    });
+});
+</script></body>
 </html>

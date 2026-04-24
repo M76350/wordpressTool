@@ -2,6 +2,22 @@ let history = [];
 let histIdx  = -1;
 let saveTimer = null;
 
+// ── LOCALSTORAGE PERSIST ──
+const TLS = {
+    save() {
+        localStorage.setItem('te_content', document.getElementById('textEditor').value);
+    },
+    restore() {
+        const val = localStorage.getItem('te_content');
+        if (val) {
+            document.getElementById('textEditor').value = val;
+            updateStats(); updateLineNumbers();
+            document.getElementById('fileLabel').textContent = 'Restored';
+        }
+    },
+    clear() { localStorage.removeItem('te_content'); }
+};
+
 // ── HISTORY ──
 function saveHistory() {
     const val = document.getElementById('textEditor').value;
@@ -35,7 +51,7 @@ function onInput() {
     updateStats();
     updateLineNumbers();
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveHistory, 600);
+    saveTimer = setTimeout(() => { saveHistory(); TLS.save(); }, 600);
 }
 
 // ── LINE NUMBERS ──
@@ -102,6 +118,7 @@ function clearEditor() {
     if (!confirm('Clear editor?')) return;
     document.getElementById('textEditor').value = '';
     history = []; histIdx = -1;
+    TLS.clear();
     updateStats(); updateLineNumbers(); updateBtns();
     document.getElementById('fileLabel').textContent = 'No file loaded';
     setStatus('Cleared');
@@ -146,5 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
         if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); doRedo(); }
     });
-    loadFile();
+    TLS.restore();
+    // Only load file if no saved session exists
+    if (!localStorage.getItem('te_content')) {
+        loadFile();
+    } else {
+        saveHistory(); // put restored content in history
+    }
 });
