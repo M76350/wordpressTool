@@ -68,13 +68,14 @@ function updateCursor() {
 async function loadFile() {
     try {
         const r = await fetch('data/cities.txt');
+        if (!r.ok) throw new Error('Not found');
         const t = await r.text();
         document.getElementById('textEditor').value = t;
         document.getElementById('fileLabel').textContent = 'cities.txt';
         saveHistory(); updateStats(); updateLineNumbers();
         setStatus('✅ cities.txt loaded');
     } catch(e) {
-        setStatus('No file to load — start typing!');
+        setStatus('Start typing or paste your text here');
     }
 }
 
