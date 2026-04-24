@@ -98,7 +98,43 @@
 
     <script>
         let currentIdx = 0;
-        const total = document.querySelectorAll('.city-links a').length;
+
+        function init() {
+            const links = [...document.querySelectorAll('.city-links a')];
+            links.forEach((link, i) => {
+                link.addEventListener('click', () => {
+                    // Mark this link as opened
+                    link.style.color      = '#a6e3a1';
+                    link.style.fontWeight = 'bold';
+
+                    // If manually clicked link is ahead of currentIdx, advance to next
+                    if (i >= currentIdx) {
+                        currentIdx = i + 1;
+                        updateBtn(links);
+                    }
+                });
+            });
+            updateBtn(links);
+        }
+
+        function updateBtn(links) {
+            const btn = document.getElementById('openBtn');
+            const msg = document.getElementById('statusMsg');
+            const opened = [...document.querySelectorAll('.city-links a')]
+                .filter(l => l.style.color === 'rgb(166, 227, 161)').length;
+
+            if (currentIdx >= links.length) {
+                btn.textContent = '✅ All Done';
+                btn.disabled    = true;
+                msg.textContent = `All ${links.length} links opened!`;
+            } else {
+                btn.textContent = `🚀 Open Next Link (${currentIdx + 1}/${links.length})`;
+                msg.textContent = opened > 0
+                    ? `✔ ${opened} opened — ${links.length - currentIdx} remaining`
+                    : 'Click to open links one by one';
+                btn.disabled = false;
+            }
+        }
 
         function openNextLink() {
             const links = [...document.querySelectorAll('.city-links a')];
@@ -109,29 +145,22 @@
             a.href = link.href; a.target = '_blank'; a.rel = 'noopener noreferrer';
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
 
-            link.style.color = '#a6e3a1'; link.style.fontWeight = 'bold';
+            link.style.color      = '#a6e3a1';
+            link.style.fontWeight = 'bold';
             currentIdx++;
-
-            const btn = document.getElementById('openBtn');
-            const msg = document.getElementById('statusMsg');
-
-            if (currentIdx < links.length) {
-                btn.textContent = `🚀 Open Next Link (${currentIdx + 1}/${links.length})`;
-                msg.textContent = `✔ Opened: ${link.textContent.trim()} — ${links.length - currentIdx} remaining`;
-            } else {
-                btn.textContent = '✅ All Done';
-                btn.disabled    = true;
-                msg.textContent = `All ${links.length} links opened!`;
-            }
+            updateBtn(links);
         }
 
         function resetLinks() {
             currentIdx = 0;
-            document.getElementById('openBtn').textContent = `🚀 Open Next Link (1/${document.querySelectorAll('.city-links a').length})`;
-            document.getElementById('openBtn').disabled   = false;
+            document.querySelectorAll('.city-links a').forEach(l => {
+                l.style.color = ''; l.style.fontWeight = '';
+            });
+            updateBtn([...document.querySelectorAll('.city-links a')]);
             document.getElementById('statusMsg').textContent = 'Click to open links one by one';
-            document.querySelectorAll('.city-links a').forEach(l => { l.style.color = ''; l.style.fontWeight = ''; });
         }
+
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 
 </body>
