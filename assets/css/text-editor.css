@@ -1,0 +1,55 @@
+/* Text Editor Page */
+header { background: #181825; padding: 10px 20px; border-bottom: 1px solid #313244; display: flex; align-items: center; justify-content: space-between; }
+header h1 { font-size: 1em; color: #cba6f7; }
+
+.toolbar { background: #181825; border-bottom: 1px solid #313244; padding: 8px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn { border: none; padding: 6px 14px; border-radius: 5px; font-size: 0.82em; font-weight: bold; cursor: pointer; }
+.btn-load  { background: #f9e2af; color: #1e1e2e; }
+.btn-save  { background: #a6e3a1; color: #1e1e2e; }
+.btn-copy  { background: #89b4fa; color: #1e1e2e; }
+.btn-clear { background: #313244; color: #a6adc8; }
+.btn-undo  { background: #313244; color: #cdd6f4; }
+.btn:hover    { opacity: 0.85; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.divider-v { width: 1px; background: #313244; height: 20px; }
+
+.stats { font-size: 0.72em; color: #6c7086; margin-left: auto; display: flex; gap: 12px; }
+.stats span { color: #a6adc8; }
+
+.editor-wrap { display: flex; flex: 1; overflow: hidden; }
+
+#lineNumbers {
+    background: #181825;
+    color: #45475a;
+    padding: 14px 10px 14px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    line-height: 1.7;
+    text-align: right;
+    user-select: none;
+    border-right: 1px solid #313244;
+    min-width: 48px;
+    overflow: hidden;
+    white-space: pre;
+}
+
+#textEditor {
+    flex: 1;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border: none;
+    padding: 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    resize: none;
+    outline: none;
+    line-height: 1.7;
+    tab-size: 4;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+.status-bar { background: #11111b; border-top: 1px solid #313244; padding: 4px 14px; font-size: 0.72em; color: #6c7086; display: flex; gap: 16px; }
+.status-bar span { color: #a6adc8; }

@@ -5,12 +5,29 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>courierchargesfor.com</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: #1e1e2e; color: #cdd6f4; padding: 20px; }
+            .city-links a { display: inline-block; color: #89b4fa; margin: 4px 0; text-decoration: none; }
+            .city-links a:hover { text-decoration: underline; }
+            .toolbar { margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+            .btn { border: none; padding: 8px 16px; border-radius: 5px; font-size: 0.85em; font-weight: bold; cursor: pointer; }
+            .btn-open  { background: #a6e3a1; color: #1e1e2e; }
+            .btn-open:hover { background: #94e2d5; }
+            .btn-stop  { background: #f38ba8; color: #1e1e2e; display: none; }
+            .status { font-size: 0.78em; color: #f9e2af; }
+            input[type=number] { background: #313244; border: 1px solid #45475a; color: #cdd6f4; padding: 6px 8px; border-radius: 4px; width: 70px; font-size: 0.82em; outline: none; }
+        </style>
 </head>
 
 <body>
 
+    <div class="toolbar">
+        <button class="btn btn-open" id="openBtn" onclick="openNextLink()">🚀 Open Next Link (1/19)</button>
+        <button class="btn" id="resetBtn" onclick="resetLinks()" style="background:#313244;color:#a6adc8;">↺ Reset</button>
+        <span class="status" id="statusMsg">Click to open links one by one</span>
+    </div>
 
-        <div class="city-links">
+    <div class="city-links">
 
                 <a href="https://courierchargesfor.com/courier-charges-from-delhi-to-palermo/" target="_blank"
                         rel="noopener noreferrer">Delhi </a> <br>
@@ -78,6 +95,44 @@
 
 
         </div>
+
+    <script>
+        let currentIdx = 0;
+        const total = document.querySelectorAll('.city-links a').length;
+
+        function openNextLink() {
+            const links = [...document.querySelectorAll('.city-links a')];
+            if (currentIdx >= links.length) return;
+
+            const link = links[currentIdx];
+            const a = document.createElement('a');
+            a.href = link.href; a.target = '_blank'; a.rel = 'noopener noreferrer';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+            link.style.color = '#a6e3a1'; link.style.fontWeight = 'bold';
+            currentIdx++;
+
+            const btn = document.getElementById('openBtn');
+            const msg = document.getElementById('statusMsg');
+
+            if (currentIdx < links.length) {
+                btn.textContent = `🚀 Open Next Link (${currentIdx + 1}/${links.length})`;
+                msg.textContent = `✔ Opened: ${link.textContent.trim()} — ${links.length - currentIdx} remaining`;
+            } else {
+                btn.textContent = '✅ All Done';
+                btn.disabled    = true;
+                msg.textContent = `All ${links.length} links opened!`;
+            }
+        }
+
+        function resetLinks() {
+            currentIdx = 0;
+            document.getElementById('openBtn').textContent = `🚀 Open Next Link (1/${document.querySelectorAll('.city-links a').length})`;
+            document.getElementById('openBtn').disabled   = false;
+            document.getElementById('statusMsg').textContent = 'Click to open links one by one';
+            document.querySelectorAll('.city-links a').forEach(l => { l.style.color = ''; l.style.fontWeight = ''; });
+        }
+    </script>
 
 </body>
 
