@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wordpress-tool.vercel.app/sitemap.xml
