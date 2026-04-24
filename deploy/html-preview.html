@@ -1,10 +1,20 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Preview | Manish Tools</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <title>HTML Preview Editor | ManishDevTools</title>
+    <meta name="description" content="ManishDevTools HTML Preview Editor – Free live HTML editor by Manish Web Developer. Write, preview and test HTML code instantly with find & replace and undo/redo.">
+    <meta name="keywords" content="ManishDevTools, html preview editor manish, live html editor online, manish web developer html tool, wordpress html preview manish">
+    <meta name="author" content="Manish Web Developer">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://wordpress-tool.vercel.app/html-preview.html">
+        <link rel="icon" type="image/png" href="assets/images/ManishDevTool.png">
+    <link rel="apple-touch-icon" href="assets/images/ManishDevTool.png">
+    <meta property="og:image" content="https://wordpress-tool.vercel.app/assets/images/ManishDevTool.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:image" content="https://wordpress-tool.vercel.app/assets/images/ManishDevTool.png">    <link rel="stylesheet" href="assets/css/style.css">
     <style>
         header { background: #181825; padding: 10px 20px; border-bottom: 1px solid #313244; }
         header h1 { font-size: 1em; color: #cba6f7; }
@@ -71,12 +81,23 @@
 <body>
 
 <nav class="navbar">
-    <span class="navbar-brand">⚡ <span>Manish</span> Tools</span>
-    <a href="index.html" class="nav-link">🏙️ City Replace</a>
+    <a href="index.html" class="navbar-brand" style="text-decoration:none;">⚡ <span>Manish</span> Tools</a>
+    <div class="navbar-links"><a href="index.html" class="nav-link">🏙️ City Replace</a>
     <a href="manual-replace.html" class="nav-link">🔍 Manual Replace</a>
     <a href="html-preview.html" class="nav-link active">🖥️ HTML Preview</a>
-    <a href="text-editor.html" class="nav-link">📝 Text Editor</a>
+    <a href="text-editor.html" class="nav-link">📝 Text Editor</a></div>
+<div class="nav-toggle" id="navToggle" onclick="toggleMobileNav()"><span></span><span></span><span></span></div>
 </nav>
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-inner">
+        <button class="mobile-nav-close" onclick="toggleMobileNav()"></button>
+        <a href="index.html" class="nav-link" onclick="toggleMobileNav()"> City Replace</a>
+        <a href="manual-replace.html" class="nav-link" onclick="toggleMobileNav()"> Manual Replace</a>
+        <a href="html-preview.html" class="nav-link active" onclick="toggleMobileNav()"> HTML Preview</a>
+        <a href="text-editor.html" class="nav-link" onclick="toggleMobileNav()"> Text Editor</a>
+    </div>
+</div>
 
 <header>
     <h1>🖥️ HTML Editor & Live Preview</h1>
@@ -318,5 +339,31 @@
     loadCityLink();
 </script>
 
-</body>
+
+<footer class="site-footer">
+    <div>
+        <span class="footer-brand">? Manish Tools</span>
+        &nbsp;� Free WordPress City Replace Tool
+    </div>
+    <div class="footer-links">
+        <div class="navbar-links"><a href="index.html">City Replace</a>
+        <a href="manual-replace.html">Manual Replace</a>
+        <a href="html-preview.html">HTML Preview</a>
+        <a href="text-editor.html">Text Editor</a></div>
+    </div>
+    <div class="footer-right">Built by Manish Web Developer  2026</div>
+</footer>
+<script>
+function toggleMobileNav() {
+    const nav    = document.getElementById('mobileNav');
+    const toggle = document.getElementById('navToggle');
+    nav.classList.toggle('open');
+    toggle.classList.toggle('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('mobileNav').addEventListener('click', function(e) {
+        if (e.target === this) toggleMobileNav();
+    });
+});
+</script></body>
 </html>

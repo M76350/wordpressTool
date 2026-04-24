@@ -117,14 +117,15 @@ function updateOpBox() {
 }
 
 // ── LOAD TEMPLATE ──
-async function loadTemplate() {
+async function loadTemplate(path) {
+    const filePath = path || 'data/delhi-template.html';
     try {
-        const r = await fetch('data/delhi-template.html');
+        const r = await fetch(filePath);
         const t = await r.text();
         document.getElementById('inputArea').value = t;
         LS.save();
     } catch(e) {
-        alert('Could not load delhi-template.html. Please paste the code manually.');
+        alert(`Could not load ${filePath}. Please paste the code manually.`);
     }
 }
 
@@ -147,8 +148,18 @@ function resetSteps() {
 }
 
 // ── PROCESS POPUP ──
-function ppShow() { document.getElementById('processPopup').classList.add('show'); }
-function ppHide() { document.getElementById('processPopup').classList.remove('show'); }
+function ppShow() {
+    document.getElementById('processPopup').classList.add('show');
+    document.querySelector('.process-popup').classList.add('processing');
+    document.body.classList.add('processing');
+    document.getElementById('ppProgress').style.width = '0%';
+}
+function ppHide() {
+    document.querySelector('.process-popup').classList.remove('processing');
+    document.body.classList.remove('processing');
+    document.getElementById('processPopup').classList.remove('show');
+}
+function ppSetProgress(pct) { document.getElementById('ppProgress').style.width = pct + '%'; }
 
 function pps(id, state, b, t) {
     const el = document.getElementById(id);
@@ -202,6 +213,7 @@ async function startFlow() {
     }
     ss('s1','done', count, `"${findWord}" found ${count}×`);
     pps('pp1','done', count, `"${findWord}" found ${count}×`);
+    ppSetProgress(25);
 
     // STEP 2 — REPLACE
     await delay(500);
@@ -211,6 +223,7 @@ async function startFlow() {
     let result = input.replace(findRegex, replWord);
     ss('s2','done', count, `${count} replacements done`);
     pps('pp2','done', count, `${count} replacements done`);
+    ppSetProgress(55);
 
     // STEP 3 — SLUG FIX
     await delay(500);
@@ -238,11 +251,13 @@ async function startFlow() {
     }
     ss('s3','done', slugCount, `${slugCount} slug(s) fixed`);
     pps('pp3','done', slugCount, `${slugCount} slug(s) fixed`);
+    ppSetProgress(80);
 
     // STEP 4 — DONE
     await delay(400);
     ss('s4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
     pps('pp4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
+    ppSetProgress(100);
     await delay(800);
     ppHide();
 
@@ -256,7 +271,7 @@ async function startFlow() {
 
     const isLast = (currentIndex + 2 >= CITIES.length);
     if (isLast) {
-        showCompletionPopup();
+        setTimeout(() => showCompletionPopup(), 6000);
     } else {
         const nextFind = CITIES[currentIndex + 1];
         const nextRepl = CITIES[currentIndex + 2];
@@ -348,8 +363,18 @@ function copyOutput() {
     if (!val.trim()) { alert('Nothing to copy yet!'); return; }
     navigator.clipboard.writeText(val).then(() => {
         const b = document.getElementById('copyBtn');
+        const hl = document.getElementById('outputHighlight');
         b.textContent = '✔ Copied!';
-        setTimeout(() => b.textContent = 'Copy All', 2000);
+        b.style.background = '#a6e3a1';
+        hl.style.transition = 'background 0.3s, color 0.3s';
+        hl.style.background = '#1a2e1a';
+        hl.style.color = '#000000';
+        setTimeout(() => {
+            b.textContent = 'Copy All';
+            b.style.background = '';
+            hl.style.background = '';
+            hl.style.color = '';
+        }, 2000);
     });
 }
 
