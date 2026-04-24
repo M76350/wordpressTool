@@ -126,7 +126,7 @@
             <span>👁️ Live Preview</span>
             <span id="previewStatus" style="color:#6c7086;font-size:0.75em;">Ready</span>
         </div>
-        <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+        <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
     </div>
 
 </div>
@@ -172,7 +172,7 @@
     // ── LOAD citylink.html ──
     async function loadCityLink() {
         try {
-            const r = await fetch('data/citylink.html');
+            const r = await fetch('citylink.html');
             const t = await r.text();
             document.getElementById('codeEditor').value = t;
             updateLineCount();

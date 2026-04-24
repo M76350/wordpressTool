@@ -9,6 +9,33 @@ let currentIndex = 0;
 let doneSet = new Set();
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
+// ── LOCALSTORAGE PERSIST ──
+const LS = {
+    save() {
+        localStorage.setItem('ct_input',   document.getElementById('inputArea').value);
+        localStorage.setItem('ct_output',  document.getElementById('outputArea').value);
+        localStorage.setItem('ct_index',   currentIndex);
+        localStorage.setItem('ct_done',    JSON.stringify([...doneSet]));
+    },
+    restore() {
+        const input  = localStorage.getItem('ct_input');
+        const output = localStorage.getItem('ct_output');
+        const idx    = localStorage.getItem('ct_index');
+        const done   = localStorage.getItem('ct_done');
+        if (input  !== null) document.getElementById('inputArea').value  = input;
+        if (output !== null) document.getElementById('outputArea').value = output;
+        if (idx    !== null) currentIndex = parseInt(idx) || 0;
+        if (done   !== null) doneSet = new Set(JSON.parse(done));
+        if (output && output.trim()) {
+            document.getElementById('outputHighlight').innerHTML =
+                '<span style="color:#6c7086;font-size:0.85em;">← Previous session output restored. Run again to re-highlight.</span>';
+        }
+    },
+    clear() {
+        ['ct_input','ct_output','ct_index','ct_done'].forEach(k => localStorage.removeItem(k));
+    }
+};
+
 // ── UNDO / REDO ──
 let appHistory = [];
 let appHistoryIndex = -1;
@@ -19,6 +46,7 @@ function appSaveHistory() {
     appHistory.push(val);
     appHistoryIndex = appHistory.length - 1;
     updateAppUndoRedo();
+    LS.save();
 }
 
 function appUndo() {
@@ -26,6 +54,7 @@ function appUndo() {
     appHistoryIndex--;
     document.getElementById('inputArea').value = appHistory[appHistoryIndex];
     updateAppUndoRedo();
+    LS.save();
 }
 
 function appRedo() {
@@ -33,6 +62,7 @@ function appRedo() {
     appHistoryIndex++;
     document.getElementById('inputArea').value = appHistory[appHistoryIndex];
     updateAppUndoRedo();
+    LS.save();
 }
 
 function updateAppUndoRedo() {
@@ -43,6 +73,9 @@ function updateAppUndoRedo() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    LS.restore();
+    updateOpBox();
+    buildList();
     updateAppUndoRedo();
     document.addEventListener('keydown', e => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); appUndo(); }
@@ -73,6 +106,7 @@ function jumpTo(i) {
     buildList();
     hideNextBtn();
     resetSteps();
+    LS.save();
 }
 
 function updateOpBox() {
@@ -85,11 +119,12 @@ function updateOpBox() {
 // ── LOAD TEMPLATE ──
 async function loadTemplate() {
     try {
-        const r = await fetch('delhi-template.html');
+        const r = await fetch('data/delhi-template.html');
         const t = await r.text();
         document.getElementById('inputArea').value = t;
+        LS.save();
     } catch(e) {
-        alert('Could not load data.html. Please paste the code manually.');
+        alert('Could not load delhi-template.html. Please paste the code manually.');
     }
 }
 
@@ -111,7 +146,7 @@ function resetSteps() {
     document.getElementById('s4t').textContent = 'Output ready!';
 }
 
-// ── PROCESS POPUP HELPERS ──
+// ── PROCESS POPUP ──
 function ppShow() { document.getElementById('processPopup').classList.add('show'); }
 function ppHide() { document.getElementById('processPopup').classList.remove('show'); }
 
@@ -139,7 +174,7 @@ async function startFlow() {
     const findWord = CITIES[currentIndex];
     const replWord = CITIES[currentIndex + 1];
 
-    if (!input.trim()) { alert('Please paste your code or click "Load data.html" first!'); return; }
+    if (!input.trim()) { alert('Please paste your code or click "Load delhi-template.html" first!'); return; }
     if (!replWord)     { alert('No next city available!'); return; }
 
     const btn = document.getElementById('replaceBtn');
@@ -150,12 +185,13 @@ async function startFlow() {
     ppReset();
     ppShow();
 
-    // STEP 1 — FIND (case-insensitive)
+    // STEP 1 — FIND
     ss('s1','active','...', `Finding "${findWord}"...`);
     pps('pp1','active','...', `Finding "${findWord}"...`);
     await delay(600);
-    const findRegex = new RegExp(findWord.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
-    const count = (input.match(findRegex) || []).length;
+    const escFind   = findWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const findRegex = new RegExp(escFind, 'gi');
+    const count     = (input.match(findRegex) || []).length;
     if (count === 0) {
         ss('s1','err','0', `"${findWord}" not found!`);
         pps('pp1','err','0', `"${findWord}" not found!`);
@@ -167,7 +203,7 @@ async function startFlow() {
     ss('s1','done', count, `"${findWord}" found ${count}×`);
     pps('pp1','done', count, `"${findWord}" found ${count}×`);
 
-    // STEP 2 — REPLACE (case-insensitive, preserve replace word case)
+    // STEP 2 — REPLACE
     await delay(500);
     ss('s2','active','...', `"${findWord}" → "${replWord}"...`);
     pps('pp2','active','...', `"${findWord}" → "${replWord}"...`);
@@ -193,12 +229,12 @@ async function startFlow() {
         result = result.split(capSlug).join(lowSlug);
     }
     if (findCapSlug !== lowSlug) {
-        const extra = result.split(findCapSlug).length - 1;
-        if (extra > 0) { slugCount += extra; result = result.split(findCapSlug).join(lowSlug); }
+        const e = result.split(findCapSlug).length - 1;
+        if (e > 0) { slugCount += e; result = result.split(findCapSlug).join(lowSlug); }
     }
     if (findLowSlug !== lowSlug) {
-        const extra = result.split(findLowSlug).length - 1;
-        if (extra > 0) { slugCount += extra; result = result.split(findLowSlug).join(lowSlug); }
+        const e = result.split(findLowSlug).length - 1;
+        if (e > 0) { slugCount += e; result = result.split(findLowSlug).join(lowSlug); }
     }
     ss('s3','done', slugCount, `${slugCount} slug(s) fixed`);
     pps('pp3','done', slugCount, `${slugCount} slug(s) fixed`);
@@ -207,8 +243,6 @@ async function startFlow() {
     await delay(400);
     ss('s4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
     pps('pp4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
-
-    // Close popup after short pause, then update output
     await delay(800);
     ppHide();
 
@@ -218,6 +252,7 @@ async function startFlow() {
 
     doneSet.add(currentIndex);
     buildList();
+    LS.save();
 
     const isLast = (currentIndex + 2 >= CITIES.length);
     if (isLast) {
@@ -228,7 +263,6 @@ async function startFlow() {
         document.getElementById('nextBtnLabel').textContent = `${nextFind}  →  ${nextRepl}`;
         showNextBtn();
     }
-
     btn.disabled = false;
 }
 
@@ -245,13 +279,14 @@ function goNext() {
     buildList();
     hideNextBtn();
     resetSteps();
+    LS.save();
 }
 
 // ── HIGHLIGHT ──
 function renderHighlighted(original, result, findWord, replWord, lowSlug) {
     let html = escHtml(result);
-
-    const foundCount = (original.match(new RegExp(findWord.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi')) || []).length;
+    const escFind    = findWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const foundCount = (original.match(new RegExp(escFind, 'gi')) || []).length;
     const slugCount  = html.split(escHtml(lowSlug)).length - 1;
     const replCount  = escHtml(result).split(escHtml(replWord)).length - 1;
 
@@ -270,9 +305,9 @@ function highlightWord(html, word, cls) {
     for (let i = 0; i < parts.length; i++) {
         out += parts[i];
         if (i < parts.length - 1) {
-            const openSpans  = (out.match(/<span/g)   || []).length;
-            const closeSpans = (out.match(/<\/span>/g) || []).length;
-            out += openSpans > closeSpans ? word : `<span class="${cls}">${word}</span>`;
+            const open  = (out.match(/<span/g)   || []).length;
+            const close = (out.match(/<\/span>/g) || []).length;
+            out += open > close ? word : `<span class="${cls}">${word}</span>`;
         }
     }
     return out;
@@ -297,6 +332,7 @@ function restartFromDelhi() {
     document.getElementById('cntFind').textContent    = '—';
     document.getElementById('cntReplace').textContent = '—';
     document.getElementById('cntSlug').textContent    = '—';
+    LS.clear();
     updateOpBox();
     buildList();
     hideNextBtn();
@@ -304,7 +340,6 @@ function restartFromDelhi() {
     loadTemplate();
 }
 
-// ── UTILS ──
 function showNextBtn() { document.getElementById('nextBtn').classList.add('visible'); }
 function hideNextBtn() { document.getElementById('nextBtn').classList.remove('visible'); }
 
@@ -327,12 +362,9 @@ function clearAll() {
     document.getElementById('cntSlug').textContent    = '—';
     currentIndex = 0;
     doneSet.clear();
+    LS.clear();
     updateOpBox();
     buildList();
     hideNextBtn();
     resetSteps();
 }
-
-// ── INIT ──
-updateOpBox();
-buildList();
