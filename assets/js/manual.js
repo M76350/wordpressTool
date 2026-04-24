@@ -1,17 +1,45 @@
 let matches = [];
 let currentMatch = -1;
 
-// ── UNDO / REDO HISTORY ──
+// ── UNDO / REDO ──
 let history = [];
 let historyIndex = -1;
 
+// ── LOCALSTORAGE PERSIST ──
+const MLS = {
+    save() {
+        localStorage.setItem('mr_input',   document.getElementById('inputArea').value);
+        localStorage.setItem('mr_find',    document.getElementById('findInput').value);
+        localStorage.setItem('mr_replace', document.getElementById('replaceInput').value);
+        localStorage.setItem('mr_output',  document.getElementById('outputArea').value);
+    },
+    restore() {
+        const input   = localStorage.getItem('mr_input');
+        const find    = localStorage.getItem('mr_find');
+        const replace = localStorage.getItem('mr_replace');
+        const output  = localStorage.getItem('mr_output');
+        if (input)   document.getElementById('inputArea').value   = input;
+        if (find)    document.getElementById('findInput').value   = find;
+        if (replace) document.getElementById('replaceInput').value = replace;
+        if (output)  document.getElementById('outputArea').value  = output;
+        if (output && output.trim()) {
+            document.getElementById('outputHighlight').innerHTML =
+                '<span style="color:#6c7086;font-size:0.85em;">← Previous session restored. Run Find All to re-highlight.</span>';
+        }
+        if (input && find) render();
+    },
+    clear() {
+        ['mr_input','mr_find','mr_replace','mr_output'].forEach(k => localStorage.removeItem(k));
+    }
+};
+
 function saveHistory() {
     const val = document.getElementById('inputArea').value;
-    // Remove any redo states ahead
     history = history.slice(0, historyIndex + 1);
     history.push(val);
     historyIndex = history.length - 1;
     updateUndoRedoBtns();
+    MLS.save();
 }
 
 function undo() {
@@ -19,6 +47,7 @@ function undo() {
     historyIndex--;
     document.getElementById('inputArea').value = history[historyIndex];
     updateUndoRedoBtns();
+    MLS.save();
     render();
 }
 
@@ -27,6 +56,7 @@ function redo() {
     historyIndex++;
     document.getElementById('inputArea').value = history[historyIndex];
     updateUndoRedoBtns();
+    MLS.save();
     render();
 }
 
@@ -50,9 +80,9 @@ function isCaseInsensitive() {
 }
 
 function setCount(found, replaced, slugs) {
-    document.getElementById('matchCount').textContent   = found   !== null ? found   : document.getElementById('matchCount').textContent;
-    document.getElementById('replaceCount').textContent = replaced !== null ? replaced : document.getElementById('replaceCount').textContent;
-    document.getElementById('slugCount').textContent    = slugs   !== null ? slugs   : document.getElementById('slugCount').textContent;
+    if (found    !== null) document.getElementById('matchCount').textContent   = found;
+    if (replaced !== null) document.getElementById('replaceCount').textContent = replaced;
+    if (slugs    !== null) document.getElementById('slugCount').textContent    = slugs;
 }
 
 // ── RENDER ──
@@ -70,20 +100,20 @@ function render() {
     renderHighlight();
 }
 
-function onFindInput() { render(); }
+function onFindInput() { MLS.save(); render(); }
 
-// Save initial state when user pastes/types in input
 document.addEventListener('DOMContentLoaded', () => {
     const ta = document.getElementById('inputArea');
     if (ta) {
         ta.addEventListener('input', () => {
-            // Debounce history save on manual typing
             clearTimeout(ta._histTimer);
             ta._histTimer = setTimeout(saveHistory, 800);
         });
     }
+    // Restore state from localStorage
+    MLS.restore();
     updateUndoRedoBtns();
-    // Keyboard shortcuts
+
     document.addEventListener('keydown', e => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
         if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
@@ -173,10 +203,7 @@ function replaceCurrent() {
 
     buildMatches();
     if (currentMatch >= matches.length) currentMatch = matches.length - 1;
-
-    // Count how many replaced so far = original - remaining
-    const remaining = matches.length;
-    setCount(remaining, null, null);
+    setCount(matches.length, null, null);
     renderHighlightWithReplaced(newText, repl, '-' + repl.toLowerCase());
 }
 
@@ -187,20 +214,17 @@ function replaceAll() {
     const repl = getReplWord();
     if (!find) { alert('Enter a word to find!'); return; }
 
-    // Count matches
     const count = isCaseInsensitive()
         ? (text.toLowerCase().split(find.toLowerCase()).length - 1)
         : (text.split(find).length - 1);
 
     if (count === 0) { alert(`"${find}" not found or already replaced!`); return; }
 
-    // Step 1: word replace
     const escFind = find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     let newText = isCaseInsensitive()
         ? text.replace(new RegExp(escFind, 'gi'), repl)
         : text.split(find).join(repl);
 
-    // Step 2: slug fix
     const capSlug     = '-' + repl;
     const lowSlug     = '-' + repl.toLowerCase();
     const findCapSlug = '-' + find;
@@ -223,8 +247,6 @@ function replaceAll() {
     document.getElementById('inputArea').value = newText;
     saveHistory();
     matches = []; currentMatch = -1;
-
-    // Show exact counts for THIS operation only
     setCount(0, count, slugCount);
     renderHighlightWithReplaced(newText, repl, lowSlug);
 }
@@ -233,12 +255,10 @@ function replaceAll() {
 function renderHighlightWithReplaced(text, repl, lowSlug) {
     let html = escHtml(text);
 
-    // GREEN: fixed slugs
     if (lowSlug && lowSlug !== '-') {
         html = html.split(escHtml(lowSlug)).join(`<span class="hl-replaced">${escHtml(lowSlug)}</span>`);
     }
 
-    // BLUE: replaced word — skip inside existing spans
     const parts = html.split(escHtml(repl));
     let out = '';
     for (let i = 0; i < parts.length; i++) {
@@ -252,6 +272,7 @@ function renderHighlightWithReplaced(text, repl, lowSlug) {
 
     document.getElementById('outputHighlight').innerHTML = out;
     document.getElementById('outputArea').value = text;
+    MLS.save();
 }
 
 // ── COPY ──
@@ -273,5 +294,7 @@ function clearAll() {
     history = []; historyIndex = -1;
     setCount(0, 0, 0);
     updateUndoRedoBtns();
+    MLS.clear();
+    document.getElementById('outputHighlight').innerHTML = 'Output will appear here...';
     render();
 }
