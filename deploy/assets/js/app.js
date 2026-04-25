@@ -152,13 +152,13 @@ function ppShow() {
     document.getElementById('processPopup').classList.add('show');
     document.querySelector('.process-popup').classList.add('processing');
     document.body.classList.add('processing');
-    document.getElementById('ppProgress').style.width = '0%';
 }
 function ppHide() {
     document.querySelector('.process-popup').classList.remove('processing');
     document.body.classList.remove('processing');
     document.getElementById('processPopup').classList.remove('show');
 }
+function ppSetProgress(pct) { /* no-op: using border animation instead */ }
 function ppSetProgress(pct) { document.getElementById('ppProgress').style.width = pct + '%'; }
 
 function pps(id, state, b, t) {
