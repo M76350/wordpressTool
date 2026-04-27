@@ -77,11 +77,112 @@ document.addEventListener('DOMContentLoaded', () => {
     updateOpBox();
     buildList();
     updateAppUndoRedo();
+    const di = document.getElementById('destInput');
+    if (di) di.addEventListener('keydown', e => { if (e.key === 'Enter') applyDestination(); });
+    const pi = document.getElementById('popupDestInput');
+    if (pi) pi.addEventListener('keydown', e => { if (e.key === 'Enter') applyFromPopup(); });
     document.addEventListener('keydown', e => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); appUndo(); }
         if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); appRedo(); }
     });
 });
+
+// ── DESTINATION REPLACE — Find: Denmark → New City ──
+async function applyDestination() {
+    const newDest = document.getElementById('destInput').value.trim();
+    if (!newDest) { alert('Please enter a destination!'); return; }
+
+    const input = document.getElementById('inputArea').value;
+    if (!input.trim()) { alert('Please load a template first!'); return; }
+
+    const oldDest   = 'Denmark';
+    const escOld    = oldDest.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const findRegex = new RegExp(escOld, 'gi');
+    const count     = (input.match(findRegex) || []).length;
+
+    ppReset(); ppShow();
+
+    // STEP 1 — FIND
+    pps('pp1','active','...', `Finding "${oldDest}"...`);
+    ss('s1','active','...', `Finding "${oldDest}"...`);
+    await delay(600);
+    if (count === 0) {
+        pps('pp1','err','0', `"${oldDest}" not found!`);
+        ss('s1','err','0', `"${oldDest}" not found!`);
+        await delay(1200); ppHide(); return;
+    }
+    pps('pp1','done', count, `"${oldDest}" found ${count}×`);
+    ss('s1','done', count, `"${oldDest}" found ${count}×`);
+    ppSetProgress(25);
+
+    // STEP 2 — REPLACE (case-insensitive)
+    await delay(500);
+    pps('pp2','active','...', `"${oldDest}" → "${newDest}"...`);
+    ss('s2','active','...', `"${oldDest}" → "${newDest}"...`);
+    await delay(700);
+    let result = input.replace(findRegex, newDest);
+    pps('pp2','done', count, `${count} replacements done`);
+    ss('s2','done', count, `${count} replacements done`);
+    ppSetProgress(55);
+
+    // STEP 3 — SLUG FIX: -Germany → -germany, -Denmark → -germany
+    await delay(500);
+    const capSlug    = '-' + newDest;
+    const lowSlug    = '-' + newDest.toLowerCase();
+    const oldCapSlug = '-' + oldDest;
+    const oldLowSlug = '-' + oldDest.toLowerCase();
+    pps('pp3','active','...', `"${capSlug}" → "${lowSlug}"...`);
+    ss('s3','active','...', `"${capSlug}" → "${lowSlug}"...`);
+    await delay(700);
+    let slugCount = 0;
+    if (capSlug !== lowSlug) {
+        slugCount += result.split(capSlug).length - 1;
+        result = result.split(capSlug).join(lowSlug);
+    }
+    if (oldCapSlug !== lowSlug) {
+        const e = result.split(oldCapSlug).length - 1;
+        if (e > 0) { slugCount += e; result = result.split(oldCapSlug).join(lowSlug); }
+    }
+    if (oldLowSlug !== lowSlug) {
+        const e = result.split(oldLowSlug).length - 1;
+        if (e > 0) { slugCount += e; result = result.split(oldLowSlug).join(lowSlug); }
+    }
+    pps('pp3','done', slugCount, `${slugCount} slug(s) fixed`);
+    ss('s3','done', slugCount, `${slugCount} slug(s) fixed`);
+    ppSetProgress(80);
+
+    // STEP 4 — DONE
+    await delay(400);
+    pps('pp4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
+    ss('s4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
+    ppSetProgress(100);
+    await delay(800);
+    ppHide();
+
+    document.getElementById('cntFind').textContent    = count;
+    document.getElementById('cntReplace').textContent = count;
+    document.getElementById('cntSlug').textContent    = slugCount;
+    document.getElementById('inputArea').value = result;
+    LS.save();
+
+    currentIndex = 0; doneSet.clear();
+    updateOpBox(); buildList(); hideNextBtn(); resetSteps();
+
+    document.getElementById('destStatus').style.color = '#a6e3a1';
+    document.getElementById('destStatus').textContent = `✅ "Denmark" → "${newDest}" done! Now run 19 cities.`;
+    setTimeout(() => {
+        document.getElementById('destStatus').textContent = '';
+        document.getElementById('destStatus').style.color = '#6c7086';
+    }, 5000);
+}
+
+async function applyFromPopup() {
+    const val = document.getElementById('popupDestInput').value.trim();
+    if (!val) { alert('Please enter a destination!'); return; }
+    document.getElementById('destInput').value = val;
+    document.getElementById('completionPopup').style.display = 'none';
+    await applyDestination();
+}
 
 // ── CITY LIST ──
 function buildList() {
@@ -152,13 +253,13 @@ function ppShow() {
     document.getElementById('processPopup').classList.add('show');
     document.querySelector('.process-popup').classList.add('processing');
     document.body.classList.add('processing');
+    document.getElementById('ppProgress').style.width = '0%';
 }
 function ppHide() {
     document.querySelector('.process-popup').classList.remove('processing');
     document.body.classList.remove('processing');
     document.getElementById('processPopup').classList.remove('show');
 }
-function ppSetProgress(pct) { /* no-op: using border animation instead */ }
 function ppSetProgress(pct) { document.getElementById('ppProgress').style.width = pct + '%'; }
 
 function pps(id, state, b, t) {
@@ -334,11 +435,17 @@ function escHtml(str) {
 
 // ── POPUP ──
 function showCompletionPopup() {
+    document.getElementById('destSection').style.display = 'block';
     document.getElementById('completionPopup').style.display = 'flex';
+    setTimeout(() => {
+        const pi = document.getElementById('popupDestInput');
+        if (pi) { pi.focus(); pi.value = ''; }
+    }, 300);
 }
 
 function restartFromDelhi() {
     document.getElementById('completionPopup').style.display = 'none';
+    document.getElementById('destSection').style.display = 'none';
     currentIndex = 0;
     doneSet.clear();
     document.getElementById('inputArea').value = '';
@@ -348,10 +455,7 @@ function restartFromDelhi() {
     document.getElementById('cntReplace').textContent = '—';
     document.getElementById('cntSlug').textContent    = '—';
     LS.clear();
-    updateOpBox();
-    buildList();
-    hideNextBtn();
-    resetSteps();
+    updateOpBox(); buildList(); hideNextBtn(); resetSteps();
     loadTemplate();
 }
 

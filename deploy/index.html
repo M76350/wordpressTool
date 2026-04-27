@@ -94,10 +94,10 @@
         <!-- LEFT: Input -->
         <div class="panel">
             <div class="panel-header">
-                <span>📋 Input — Paste your HTML / WordPress code</span>
+                <span>📋 Input — Paste your HTML / WordPress code / Denmark Template</span>
                 <div style="display:flex;gap:5px;">
-                    <button onclick="loadTemplate('data/delhi-template.html')" style="background:#cba6f7;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">Delhi</button>
-                    <button onclick="loadTemplate('data/Parent-template.html')" style="background:#89b4fa;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">Parent</button>
+                    <button onclick="loadTemplate('data/delhi-template.html')" style="background:#cba6f7;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">Delhi-sub</button>
+                    <button onclick="loadTemplate('data/Parent-template.html')" style="background:#89b4fa;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">Delhi-Parent</button>
                     <button onclick="loadTemplate('data/india.html')" style="background:#a6e3a1;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">India</button>
                 </div>
             </div>
@@ -106,6 +106,18 @@
 
         <!-- MIDDLE: Controls -->
         <div class="controls">
+
+
+            <hr class="divider">
+
+            <!-- DESTINATION FIELD — hidden, shown after full cycle -->
+            <div id="destSection">
+                <div class="section-title">🌍 New Destination</div>
+                <input type="text" id="destInput" placeholder="e.g. Germany, France..." style="width:100%;background:#1e1e2e;border:1px solid #f9e2af;color:#f9e2af;padding:7px 10px;border-radius:5px;font-size:0.88em;outline:none;font-weight:bold;display:block;box-sizing:border-box;">
+                <button onclick="applyDestination()" style="background:#f9e2af;border:none;color:#1e1e2e;padding:8px;border-radius:5px;font-size:0.85em;font-weight:bold;cursor:pointer;width:100%;display:block;margin-top:8px;box-sizing:border-box;">✓ Set Destination & Start</button>
+                <div id="destStatus" style="font-size:0.72em;color:#6c7086;min-height:16px;margin-top:4px;"></div>
+                <hr class="divider">
+            </div>
 
             <div class="section-title">Current Operation</div>
             <button class="btn-clear" onclick="clearAll()">🗑 Reset All</button>
@@ -185,7 +197,6 @@
     <div class="process-popup">
         <h3>⚡ Processing...</h3>
         <div class="pp-progress-bar"><div class="pp-progress-fill" id="ppProgress"></div></div>
-        <div class="pp-progress-bar"><div class="pp-progress-fill" id="ppProgress"></div></div>
 
         <div class="pp-step" id="pp1">
             <span class="pp-icon">🔍</span>
@@ -222,10 +233,10 @@
                 Aapne ek baar <strong style="color:#cba6f7;">pura flow</strong> ke saath template code change kar liya hai!<br><br>
                 <strong style="color:#cdd6f4;">Delhi → India</strong> tak ka poora cycle complete ho gaya.
             </div>
-            <div class="popup-sub">Ab aage fir se <strong style="color:#a6e3a1;">new country / city name</strong> se shuru karo 🚀</div>
-            <button class="popup-btn-primary" onclick="restartFromDelhi()">🔄 Nayi City se Start Karo</button>
-            <button class="popup-btn-secondary"
-                onclick="document.getElementById('completionPopup').style.display='none'">✖ Close</button>
+            <div class="popup-sub" style="margin-bottom:8px;">Ab <strong style="color:#f9e2af;">naya destination</strong> type karo aur fresh cycle shuru karo 🚀</div>
+            <input type="text" id="popupDestInput" placeholder="New destination e.g. Germany..." style="width:100%;background:#13131f;border:1px solid #f9e2af;color:#f9e2af;padding:9px 12px;border-radius:7px;font-size:0.9em;outline:none;font-weight:bold;margin-bottom:8px;">
+            <button onclick="applyFromPopup()" style="background:linear-gradient(135deg,#f9e2af,#fab387);color:#1e1e2e;border:none;padding:12px;border-radius:7px;font-size:0.95em;font-weight:bold;cursor:pointer;width:100%;margin-bottom:6px;">🚀 Set Destination & Start New Cycle</button>
+            <button class="popup-btn-secondary" onclick="document.getElementById('completionPopup').style.display='none'">✖ Close</button>
         </div>
     </div>
 
