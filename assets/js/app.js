@@ -77,11 +77,231 @@ document.addEventListener('DOMContentLoaded', () => {
     updateOpBox();
     buildList();
     updateAppUndoRedo();
+    const di = document.getElementById('destInput');
+    if (di) di.addEventListener('keydown', e => { if (e.key === 'Enter') applyDestination(); });
+    const pi = document.getElementById('popupDestInput');
+    if (pi) pi.addEventListener('keydown', e => { if (e.key === 'Enter') applyFromPopup(); });
     document.addEventListener('keydown', e => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); appUndo(); }
         if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); appRedo(); }
     });
 });
+
+// ── QUICK COPY — 19 CITY BUTTONS ──
+let generatedCodes = {};
+
+async function generateAllCityCodes(baseCode, newDest) {
+    generatedCodes = {};
+    const panel  = document.getElementById('quickCopyPanel');
+    const grid   = document.getElementById('quickCopyGrid');
+    const status = document.getElementById('quickCopyStatus');
+    if (!panel || !grid) return;
+
+    panel.style.display = 'block';
+    grid.innerHTML = '';
+    status.textContent = '';
+
+    // Processing UI inside quick copy panel
+    const progressWrap = document.createElement('div');
+    progressWrap.style.cssText = 'width:100%;margin-bottom:12px;';
+    progressWrap.innerHTML = `
+        <div id="qcProgressBar" style="height:4px;background:#313244;border-radius:10px;overflow:hidden;margin-bottom:8px;">
+            <div id="qcProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,#cba6f7,#89b4fa,#a6e3a1,#f9e2af);background-size:300% 100%;border-radius:10px;transition:width 0.4s ease;"></div>
+        </div>
+        <div id="qcCurrentCity" style="font-size:0.78em;color:#f9e2af;min-height:18px;"></div>
+        <div id="qcCounts" style="font-size:0.72em;color:#6c7086;margin-top:4px;display:flex;gap:14px;">
+            <span>Found: <b id="qcFind" style="color:#f5c2e7;">—</b></span>
+            <span>Replaced: <b id="qcRepl" style="color:#89b4fa;">—</b></span>
+            <span>Slugs: <b id="qcSlug" style="color:#a6e3a1;">—</b></span>
+        </div>
+    `;
+    grid.appendChild(progressWrap);
+
+    const totalCities = CITIES.length;
+
+    for (let i = 0; i < totalCities; i++) {
+        const city = CITIES[i];
+
+        // Update progress UI
+        const pct = Math.round(((i) / totalCities) * 100);
+        document.getElementById('qcProgressFill').style.width = pct + '%';
+        document.getElementById('qcCurrentCity').textContent = `⚙️ Processing: ${city} → ${newDest}...`;
+
+        await new Promise(r => setTimeout(r, 120)); // real feeling delay
+
+        // Build code for this city
+        let code = baseCode;
+        let totalFound = 0, totalRepl = 0, totalSlug = 0;
+
+        // Apply city replacements up to index i
+        for (let j = 0; j < i; j++) {
+            const escF    = CITIES[j].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex   = new RegExp(escF, 'gi');
+            const matches = (code.match(regex) || []).length;
+            totalFound   += matches;
+            totalRepl    += matches;
+            code          = code.replace(regex, CITIES[j + 1]);
+
+            // slug fix
+            const capS = '-' + CITIES[j + 1];
+            const lowS = '-' + CITIES[j + 1].toLowerCase();
+            if (capS !== lowS) {
+                const sc = code.split(capS).length - 1;
+                totalSlug += sc;
+                code = code.split(capS).join(lowS);
+            }
+        }
+
+        generatedCodes[city] = code;
+
+        // Update counts
+        document.getElementById('qcFind').textContent = totalFound || '—';
+        document.getElementById('qcRepl').textContent = totalRepl || '—';
+        document.getElementById('qcSlug').textContent = totalSlug || '—';
+
+        await new Promise(r => setTimeout(r, 80));
+    }
+
+    // 100% done
+    document.getElementById('qcProgressFill').style.width = '100%';
+    document.getElementById('qcCurrentCity').textContent = '✅ All cities ready!';
+
+    await new Promise(r => setTimeout(r, 500));
+
+    // Remove progress UI, show buttons
+    grid.innerHTML = '';
+    status.style.color = '#a6e3a1';
+    status.textContent = `✅ ${totalCities} cities ready — click to copy`;
+
+    CITIES.forEach(city => {
+        const btn = document.createElement('button');
+        btn.textContent = city;
+        btn.title = `Copy ${city} → ${newDest} code`;
+        btn.style.cssText = 'background:#313244;border:1px solid #45475a;color:#cdd6f4;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:0.82em;font-weight:bold;transition:all 0.2s;';
+        btn.onmouseenter = () => { btn.style.borderColor = '#cba6f7'; btn.style.background = '#2a1e3a'; };
+        btn.onmouseleave = () => { btn.style.borderColor = '#45475a'; btn.style.background = '#313244'; };
+        btn.onclick = () => quickCopy(city, btn, newDest);
+        grid.appendChild(btn);
+    });
+}
+
+function quickCopy(city, btn, dest) {
+    const code = generatedCodes[city];
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+        const prev = btn.textContent;
+        btn.textContent = '✔ Copied!';
+        btn.style.background = '#a6e3a1';
+        btn.style.color = '#1e1e2e';
+        btn.style.borderColor = '#a6e3a1';
+        setTimeout(() => {
+            btn.textContent = prev;
+            btn.style.background = '#313244';
+            btn.style.color = '#cdd6f4';
+            btn.style.borderColor = '#45475a';
+        }, 2000);
+    });
+}
+
+// ── DESTINATION REPLACE — Find: Denmark → New City ──
+async function applyDestination() {
+    const newDest = document.getElementById('destInput').value.trim();
+    if (!newDest) { alert('Please enter a destination!'); return; }
+
+    const input = document.getElementById('inputArea').value;
+    if (!input.trim()) { alert('Please load a template first!'); return; }
+
+    const oldDest   = 'Denmark';
+    const escOld    = oldDest.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const findRegex = new RegExp(escOld, 'gi');
+    const count     = (input.match(findRegex) || []).length;
+
+    ppReset(); ppShow();
+
+    // STEP 1 — FIND
+    pps('pp1','active','...', `Finding "${oldDest}"...`);
+    ss('s1','active','...', `Finding "${oldDest}"...`);
+    await delay(600);
+    if (count === 0) {
+        pps('pp1','err','0', `"${oldDest}" not found!`);
+        ss('s1','err','0', `"${oldDest}" not found!`);
+        await delay(1200); ppHide(); return;
+    }
+    pps('pp1','done', count, `"${oldDest}" found ${count}×`);
+    ss('s1','done', count, `"${oldDest}" found ${count}×`);
+    ppSetProgress(25);
+
+    // STEP 2 — REPLACE (case-insensitive)
+    await delay(500);
+    pps('pp2','active','...', `"${oldDest}" → "${newDest}"...`);
+    ss('s2','active','...', `"${oldDest}" → "${newDest}"...`);
+    await delay(700);
+    let result = input.replace(findRegex, newDest);
+    pps('pp2','done', count, `${count} replacements done`);
+    ss('s2','done', count, `${count} replacements done`);
+    ppSetProgress(55);
+
+    // STEP 3 — SLUG FIX: -Germany → -germany, -Denmark → -germany
+    await delay(500);
+    const capSlug    = '-' + newDest;
+    const lowSlug    = '-' + newDest.toLowerCase();
+    const oldCapSlug = '-' + oldDest;
+    const oldLowSlug = '-' + oldDest.toLowerCase();
+    pps('pp3','active','...', `"${capSlug}" → "${lowSlug}"...`);
+    ss('s3','active','...', `"${capSlug}" → "${lowSlug}"...`);
+    await delay(700);
+    let slugCount = 0;
+    if (capSlug !== lowSlug) {
+        slugCount += result.split(capSlug).length - 1;
+        result = result.split(capSlug).join(lowSlug);
+    }
+    if (oldCapSlug !== lowSlug) {
+        const e = result.split(oldCapSlug).length - 1;
+        if (e > 0) { slugCount += e; result = result.split(oldCapSlug).join(lowSlug); }
+    }
+    if (oldLowSlug !== lowSlug) {
+        const e = result.split(oldLowSlug).length - 1;
+        if (e > 0) { slugCount += e; result = result.split(oldLowSlug).join(lowSlug); }
+    }
+    pps('pp3','done', slugCount, `${slugCount} slug(s) fixed`);
+    ss('s3','done', slugCount, `${slugCount} slug(s) fixed`);
+    ppSetProgress(80);
+
+    // STEP 4 — DONE
+    await delay(400);
+    pps('pp4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
+    ss('s4','done','✓', `Ready — ${result.length.toLocaleString()} chars`);
+    ppSetProgress(100);
+    await delay(800);
+    ppHide();
+
+    document.getElementById('cntFind').textContent    = count;
+    document.getElementById('cntReplace').textContent = count;
+    document.getElementById('cntSlug').textContent    = slugCount;
+    document.getElementById('inputArea').value = result;
+    LS.save();
+
+    currentIndex = 0; doneSet.clear();
+    updateOpBox(); buildList(); hideNextBtn(); resetSteps();
+
+    // Generate all 19 city codes instantly
+    await generateAllCityCodes(result, newDest);
+
+    document.getElementById('destStatus').style.color = '#a6e3a1';
+    document.getElementById('destStatus').textContent = `✅ "Denmark" → "${newDest}" done! Now run 19 cities.`;
+    setTimeout(() => {
+        document.getElementById('destStatus').textContent = '';
+        document.getElementById('destStatus').style.color = '#6c7086';
+    }, 5000);
+}
+
+async function applyFromPopup() {
+    const val = document.getElementById('popupDestInput').value.trim();
+    if (!val) { alert('Please enter a destination!'); return; }
+    document.getElementById('destInput').value = val;
+    document.getElementById('completionPopup').style.display = 'none';
+    await applyDestination();
+}
 
 // ── CITY LIST ──
 function buildList() {
@@ -334,11 +554,17 @@ function escHtml(str) {
 
 // ── POPUP ──
 function showCompletionPopup() {
+    document.getElementById('destSection').style.display = 'block';
     document.getElementById('completionPopup').style.display = 'flex';
+    setTimeout(() => {
+        const pi = document.getElementById('popupDestInput');
+        if (pi) { pi.focus(); pi.value = ''; }
+    }, 300);
 }
 
 function restartFromDelhi() {
     document.getElementById('completionPopup').style.display = 'none';
+    document.getElementById('destSection').style.display = 'none';
     currentIndex = 0;
     doneSet.clear();
     document.getElementById('inputArea').value = '';
@@ -348,10 +574,7 @@ function restartFromDelhi() {
     document.getElementById('cntReplace').textContent = '—';
     document.getElementById('cntSlug').textContent    = '—';
     LS.clear();
-    updateOpBox();
-    buildList();
-    hideNextBtn();
-    resetSteps();
+    updateOpBox(); buildList(); hideNextBtn(); resetSteps();
     loadTemplate();
 }
 
