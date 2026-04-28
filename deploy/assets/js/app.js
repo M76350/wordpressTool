@@ -690,7 +690,7 @@ function hideNextBtn() { document.getElementById('nextBtn').classList.remove('vi
 
 function copyOutput() {
     const val = document.getElementById('outputArea').value;
-    if (!val.trim()) { alert('Nothing to copy yet!'); return; }
+    if (!val.trim()) { showModal({icon:'📋',title:'Nothing to Copy',msg:'Output is empty. Run Replace Now first.',buttons:[{label:'OK',cls:'modal-btn-cancel'}]}); return; }
     navigator.clipboard.writeText(val).then(() => {
         const b = document.getElementById('copyBtn');
         const hl = document.getElementById('outputHighlight');
