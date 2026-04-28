@@ -269,13 +269,30 @@ function quickCopy(city, btn, dest) {
     const code = generatedCodes[city];
     if (!code) return;
     navigator.clipboard.writeText(code).then(() => {
-        const prev = btn.textContent;
-        btn.textContent = '✔ Copied!';
+        const wasCopied = btn.classList.contains('copied');
+
         btn.classList.add('copied');
-        setTimeout(() => {
-            btn.textContent = prev;
-            btn.classList.remove('copied');
-        }, 2000);
+        btn.textContent = wasCopied ? '✔✔ Re-copied!' : '✔ ' + city;
+
+        // Brief flash for re-copy
+        if (wasCopied) {
+            btn.style.background = 'linear-gradient(135deg,#f9e2af,#fab387)';
+            btn.style.color = '#1e1e2e';
+            setTimeout(() => {
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.textContent = '✔ ' + city;
+            }, 1000);
+        }
+
+        // Update status count
+        const total  = document.querySelectorAll('.qc-city-btn').length;
+        const done   = document.querySelectorAll('.qc-city-btn.copied').length;
+        const status = document.getElementById('quickCopyStatus');
+        if (status) {
+            status.textContent = `✔ ${done}/${total} copied`;
+            status.style.color = done === total ? '#a6e3a1' : '#f9e2af';
+        }
     });
 }
 
