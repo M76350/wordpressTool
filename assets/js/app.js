@@ -87,8 +87,88 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ── CUSTOM MODAL ──
+function showModal({ icon='⚡', title='', msg='', extra='', buttons=[] }) {
+    document.getElementById('modalIcon').textContent  = icon;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMsg').innerHTML     = msg;
+    document.getElementById('modalExtra').innerHTML   = extra;
+    const btns = document.getElementById('modalBtns');
+    btns.innerHTML = '';
+    buttons.forEach(b => {
+        const el = document.createElement('button');
+        el.className = `modal-btn ${b.cls || 'modal-btn-primary'}`;
+        el.textContent = b.label;
+        el.onclick = () => { closeModal(); b.action && b.action(); };
+        btns.appendChild(el);
+    });
+    document.getElementById('customModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('customModal').classList.remove('show');
+}
+
+// Close on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('customModal')?.addEventListener('click', e => {
+        if (e.target.id === 'customModal') closeModal();
+    });
+});
+
 // ── QUICK COPY — 19 CITY BUTTONS ──
 let generatedCodes = {};
+
+// ── UPDATE BASE & REGENERATE ──
+async function updateBaseAndRegenerate() {
+    const code = document.getElementById('inputArea').value;
+    if (!code.trim()) {
+        showModal({ icon:'⚠️', title:'Input Empty', msg:'Paste your fixed Delhi code first!', buttons:[{label:'OK', cls:'modal-btn-cancel'}] });
+        return;
+    }
+    const dest = document.getElementById('destInput')?.value?.trim();
+    if (!dest) {
+        showModal({ icon:'⚠️', title:'No Destination Set', msg:'Please set destination in the <strong style="color:#f9e2af;">New Destination</strong> field first!', buttons:[{label:'OK', cls:'modal-btn-cancel'}] });
+        return;
+    }
+    showModal({
+        icon: '🔄',
+        title: 'Regenerate 19 Cities',
+        msg: `Use pasted code as new base?<br><br>All 19 cities will be regenerated for <strong style="color:#f9e2af;">${dest}</strong> with correct images.`,
+        buttons: [
+            { label: `✅ Yes, Regenerate`, cls: 'modal-btn-success', action: async () => { await generateAllCityCodes(code, dest); } },
+            { label: 'Cancel', cls: 'modal-btn-cancel' }
+        ]
+    });
+}
+
+function saveAsTemplate() {
+    const code = document.getElementById('inputArea').value;
+    if (!code.trim()) {
+        showModal({ icon:'⚠️', title:'Input Empty', msg:'Paste your code first before saving as template.', buttons:[{label:'OK', cls:'modal-btn-cancel'}] });
+        return;
+    }
+    showModal({
+        icon: '💾',
+        title: 'Save as Base Template',
+        msg: 'Choose which template to update:',
+        extra: `<div class="modal-choice-grid">
+            <button class="modal-choice-btn c1" onclick="doSaveTemplate('1')">Delhi-sub</button>
+            <button class="modal-choice-btn c2" onclick="doSaveTemplate('2')">Delhi-Parent</button>
+            <button class="modal-choice-btn c3" onclick="doSaveTemplate('3')">India</button>
+        </div>`,
+        buttons: [{label:'Cancel', cls:'modal-btn-cancel'}]
+    });
+}
+
+function doSaveTemplate(choice) {
+    closeModal();
+    const code  = document.getElementById('inputArea').value;
+    const keys  = { '1': 'tpl_delhi', '2': 'tpl_parent', '3': 'tpl_india' };
+    const names = { '1': 'Delhi-sub', '2': 'Delhi-Parent', '3': 'India' };
+    localStorage.setItem(keys[choice], code);
+    showModal({ icon:'✅', title:'Template Saved!', msg:`<strong style="color:#cba6f7;">${names[choice]}</strong> template updated.<br>Next time you click the button, this code will load.`, buttons:[{label:'Great!', cls:'modal-btn-success'}] });
+}
 
 async function generateAllCityCodes(baseCode, newDest) {
     generatedCodes = {};
@@ -97,7 +177,8 @@ async function generateAllCityCodes(baseCode, newDest) {
     const status = document.getElementById('quickCopyStatus');
     if (!panel || !grid) return;
 
-    panel.style.display = 'block';
+    panel.style.display = 'flex';
+    panel.style.flexDirection = 'column';
     grid.innerHTML = '';
     status.textContent = '';
 
@@ -105,6 +186,7 @@ async function generateAllCityCodes(baseCode, newDest) {
     const progressWrap = document.createElement('div');
     progressWrap.style.cssText = 'width:100%;margin-bottom:12px;';
     progressWrap.innerHTML = `
+        <div style="font-size:0.82em;color:#cba6f7;font-weight:bold;margin-bottom:8px;">🌍 Destination: <span style="color:#f9e2af;">${newDest}</span></div>
         <div id="qcProgressBar" style="height:4px;background:#313244;border-radius:10px;overflow:hidden;margin-bottom:8px;">
             <div id="qcProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,#cba6f7,#89b4fa,#a6e3a1,#f9e2af);background-size:300% 100%;border-radius:10px;transition:width 0.4s ease;"></div>
         </div>
@@ -176,10 +258,8 @@ async function generateAllCityCodes(baseCode, newDest) {
     CITIES.forEach(city => {
         const btn = document.createElement('button');
         btn.textContent = city;
+        btn.className = 'qc-city-btn';
         btn.title = `Copy ${city} → ${newDest} code`;
-        btn.style.cssText = 'background:#313244;border:1px solid #45475a;color:#cdd6f4;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:0.82em;font-weight:bold;transition:all 0.2s;';
-        btn.onmouseenter = () => { btn.style.borderColor = '#cba6f7'; btn.style.background = '#2a1e3a'; };
-        btn.onmouseleave = () => { btn.style.borderColor = '#45475a'; btn.style.background = '#313244'; };
         btn.onclick = () => quickCopy(city, btn, newDest);
         grid.appendChild(btn);
     });
@@ -191,14 +271,10 @@ function quickCopy(city, btn, dest) {
     navigator.clipboard.writeText(code).then(() => {
         const prev = btn.textContent;
         btn.textContent = '✔ Copied!';
-        btn.style.background = '#a6e3a1';
-        btn.style.color = '#1e1e2e';
-        btn.style.borderColor = '#a6e3a1';
+        btn.classList.add('copied');
         setTimeout(() => {
             btn.textContent = prev;
-            btn.style.background = '#313244';
-            btn.style.color = '#cdd6f4';
-            btn.style.borderColor = '#45475a';
+            btn.classList.remove('copied');
         }, 2000);
     });
 }
@@ -206,10 +282,9 @@ function quickCopy(city, btn, dest) {
 // ── DESTINATION REPLACE — Find: Denmark → New City ──
 async function applyDestination() {
     const newDest = document.getElementById('destInput').value.trim();
-    if (!newDest) { alert('Please enter a destination!'); return; }
-
+    if (!newDest) { showModal({icon:'⚠️',title:'Enter Destination',msg:'Please type a destination country/city name.',buttons:[{label:'OK',cls:'modal-btn-cancel'}]}); return; }
     const input = document.getElementById('inputArea').value;
-    if (!input.trim()) { alert('Please load a template first!'); return; }
+    if (!input.trim()) { showModal({icon:'📋',title:'No Template Loaded',msg:'Please load a template first using the buttons above.',buttons:[{label:'OK',cls:'modal-btn-cancel'}]}); return; }
 
     const oldDest   = 'Denmark';
     const escOld    = oldDest.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -297,7 +372,7 @@ async function applyDestination() {
 
 async function applyFromPopup() {
     const val = document.getElementById('popupDestInput').value.trim();
-    if (!val) { alert('Please enter a destination!'); return; }
+    if (!val) { showModal({icon:'⚠️',title:'Enter Destination',msg:'Please type a new destination country/city.',buttons:[{label:'OK',cls:'modal-btn-cancel'}]}); return; }
     document.getElementById('destInput').value = val;
     document.getElementById('completionPopup').style.display = 'none';
     await applyDestination();
@@ -405,8 +480,8 @@ async function startFlow() {
     const findWord = CITIES[currentIndex];
     const replWord = CITIES[currentIndex + 1];
 
-    if (!input.trim()) { alert('Please paste your code or click "Load delhi-template.html" first!'); return; }
-    if (!replWord)     { alert('No next city available!'); return; }
+    if (!input.trim()) { showModal({icon:'📋',title:'No Code Found',msg:'Please paste your code or click a template button first.',buttons:[{label:'OK',cls:'modal-btn-cancel'}]}); return; }
+    if (!replWord)     { showModal({icon:'✅',title:'All Cities Done!',msg:'All 19 cities have been processed.',buttons:[{label:'OK',cls:'modal-btn-success'}]}); return; }
 
     const btn = document.getElementById('replaceBtn');
     btn.disabled = true;

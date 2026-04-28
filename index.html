@@ -94,11 +94,13 @@
         <!-- LEFT: Input -->
         <div class="panel">
             <div class="panel-header">
-                <span>📋 Input — Paste your HTML / WordPress code / Denmark Template</span>
-                <div style="display:flex;gap:5px;">
-                    <button onclick="loadTemplate('data/delhi-template.html')" style="background:#cba6f7;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">Delhi-sub</button>
-                    <button onclick="loadTemplate('data/Parent-template.html')" style="background:#89b4fa;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">Delhi-Parent</button>
-                    <button onclick="loadTemplate('data/india.html')" style="background:#a6e3a1;border:none;color:#1e1e2e;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:bold;">India</button>
+                <span>📋 Input — Paste your HTML / WordPress code</span>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <button onclick="loadTemplate('data/delhi-template.html')" class="tpl-btn tpl-delhi">Delhi-sub</button>
+                    <button onclick="loadTemplate('data/Parent-template.html')" class="tpl-btn tpl-parent">Delhi-Parent</button>
+                    <button onclick="loadTemplate('data/india.html')" class="tpl-btn tpl-india">India</button>
+                    <button onclick="saveAsTemplate()" class="tpl-btn tpl-save">💾 Save as Base</button>
+                    <button onclick="updateBaseAndRegenerate()" class="tpl-btn tpl-regen">🔄 Regenerate 19</button>
                 </div>
             </div>
             <textarea id="inputArea" placeholder="Paste your code here, or click a template button..."></textarea>
@@ -114,7 +116,7 @@
             <div id="destSection">
                 <div class="section-title">🌍 New Destination</div>
                 <input type="text" id="destInput" placeholder="e.g. Germany, France..." style="width:100%;background:#1e1e2e;border:1px solid #f9e2af;color:#f9e2af;padding:7px 10px;border-radius:5px;font-size:0.88em;outline:none;font-weight:bold;display:block;box-sizing:border-box;">
-                <button onclick="applyDestination()" style="background:#f9e2af;border:none;color:#1e1e2e;padding:8px;border-radius:5px;font-size:0.85em;font-weight:bold;cursor:pointer;width:100%;display:block;margin-top:8px;box-sizing:border-box;">✓ Set Destination & Start</button>
+                <button onclick="applyDestination()" class="dest-set-btn">✓ Set Destination & Start</button>
                 <div id="destStatus" style="font-size:0.72em;color:#6c7086;min-height:16px;margin-top:4px;"></div>
                 <hr class="divider">
             </div>
@@ -193,10 +195,10 @@
     </div>
 
     <!-- QUICK COPY PANEL -->
-    <div id="quickCopyPanel" style="display:none;background:#181825;border-top:1px solid #313244;padding:16px 20px;flex-shrink:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <span style="font-size:0.78em;color:#cba6f7;font-weight:bold;text-transform:uppercase;letter-spacing:0.05em;">⚡ Quick Copy — Click city to copy code</span>
-            <span id="quickCopyStatus" style="font-size:0.72em;color:#6c7086;"></span>
+    <div id="quickCopyPanel" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <span class="qc-title">⚡ Quick Copy — Click city to copy code</span>
+            <span id="quickCopyStatus" style="font-size:0.72em;color:#a6e3a1;"></span>
         </div>
         <div id="quickCopyGrid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
     </div>
@@ -248,6 +250,17 @@
     </div>
 
     <script src="assets/js/app.js"></script>
+
+<!-- CUSTOM MODAL -->
+<div class="custom-modal-overlay" id="customModal">
+    <div class="custom-modal">
+        <div class="modal-icon" id="modalIcon">⚡</div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-msg" id="modalMsg"></div>
+        <div id="modalExtra"></div>
+        <div class="modal-btns" id="modalBtns"></div>
+    </div>
+</div>
 <script>
 function toggleMobileNav() {
     const nav    = document.getElementById('mobileNav');
