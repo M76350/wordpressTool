@@ -255,6 +255,17 @@ async function generateAllCityCodes(baseCode, newDest) {
     status.style.color = '#a6e3a1';
     status.textContent = `✅ ${totalCities} cities ready — click to copy`;
 
+    // Show Delhi code in output area as preview
+    if (generatedCodes['Delhi']) {
+        document.getElementById('outputArea').value = generatedCodes['Delhi'];
+        renderHighlighted(
+            generatedCodes['Delhi'],
+            generatedCodes['Delhi'],
+            'Delhi', newDest,
+            '-' + newDest.toLowerCase()
+        );
+    }
+
     CITIES.forEach(city => {
         const btn = document.createElement('button');
         btn.textContent = city;
@@ -273,6 +284,10 @@ function quickCopy(city, btn, dest) {
 
         btn.classList.add('copied');
         btn.textContent = wasCopied ? '✔✔ Re-copied!' : '✔ ' + city;
+
+        // Show in output area
+        document.getElementById('outputArea').value = code;
+        renderHighlighted(code, code, city, dest, '-' + (dest||'').toLowerCase());
 
         // Brief flash for re-copy
         if (wasCopied) {
@@ -675,7 +690,7 @@ function hideNextBtn() { document.getElementById('nextBtn').classList.remove('vi
 
 function copyOutput() {
     const val = document.getElementById('outputArea').value;
-    if (!val.trim()) { alert('Nothing to copy yet!'); return; }
+    if (!val.trim()) { showModal({icon:'📋',title:'Nothing to Copy',msg:'Output is empty. Run Replace Now first.',buttons:[{label:'OK',cls:'modal-btn-cancel'}]}); return; }
     navigator.clipboard.writeText(val).then(() => {
         const b = document.getElementById('copyBtn');
         const hl = document.getElementById('outputHighlight');
