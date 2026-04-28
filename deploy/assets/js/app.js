@@ -255,6 +255,17 @@ async function generateAllCityCodes(baseCode, newDest) {
     status.style.color = '#a6e3a1';
     status.textContent = `✅ ${totalCities} cities ready — click to copy`;
 
+    // Show Delhi code in output area as preview
+    if (generatedCodes['Delhi']) {
+        document.getElementById('outputArea').value = generatedCodes['Delhi'];
+        renderHighlighted(
+            generatedCodes['Delhi'],
+            generatedCodes['Delhi'],
+            'Delhi', newDest,
+            '-' + newDest.toLowerCase()
+        );
+    }
+
     CITIES.forEach(city => {
         const btn = document.createElement('button');
         btn.textContent = city;
@@ -273,6 +284,10 @@ function quickCopy(city, btn, dest) {
 
         btn.classList.add('copied');
         btn.textContent = wasCopied ? '✔✔ Re-copied!' : '✔ ' + city;
+
+        // Show in output area
+        document.getElementById('outputArea').value = code;
+        renderHighlighted(code, code, city, dest, '-' + (dest||'').toLowerCase());
 
         // Brief flash for re-copy
         if (wasCopied) {
